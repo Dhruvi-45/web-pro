@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>GH Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    #rooms {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+
+    .room {
+      background: white;
+      border-radius: 8px;
+      padding: 15px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .available {
+      border-left: 5px solid green;
+    }
+
+    .occupied {
+      border-left: 5px solid red;
+    }
+
+    .empty {
+      text-align: center;
+      color: #777;
+      margin-top: 50px;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>GH Hostel Dashboard</h1>
+
+  <div id="rooms"></div>
+
+  <script src="gh.js"></script>
+</body>
+</html>

@@ -7,16 +7,28 @@ const Student = require('../models/Student');
 // 🔹 GET all rooms (with optional hostel filter)
 router.get('/', async (req, res) => {
   try {
-    const { hostel } = req.query;
+    console.log("Incoming query:", req.query); // DEBUG
+
+    const hostel = req.query.hostel?.trim();
 
     let query = {};
-    if (hostel) query.hostel = hostel;
+
+    // 🔥 Only filter if hostel exists
+    if (hostel && hostel !== "") {
+      query.hostel = hostel;
+    }
+
+    console.log("Final Mongo Query:", query); // DEBUG
 
     const rooms = await Room.find(query)
       .populate('occupants', 'name rollNumber course year phone photo');
 
+    console.log("Rooms found:", rooms.length); // DEBUG
+
     res.json(rooms);
+
   } catch (err) {
+    console.error("ERROR:", err);
     res.status(500).json({ error: err.message });
   }
 });
