@@ -147,3 +147,13 @@ Visit: **http://localhost:3000**
 - Smooth animations and transitions
 - Dark sidebar for navigation contrast
 "# web-pro" 
+
+
+
+
+
+
+git status
+git add .
+git commit -m "Your descriptive commit message"
+git push origin main
