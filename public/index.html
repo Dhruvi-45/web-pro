@@ -43,8 +43,8 @@ async function login() {
   localStorage.setItem("user", JSON.stringify(data.user));
 
   if (data.user.role === "chief_warden") {
-    window.location.href = "/dashboard.html";
-  } else {
+  window.location.href = "/chief-dashboard.html";
+} else {
     window.location.href = `/${data.user.hostel}/dashboard.html`;
   }
 } else {

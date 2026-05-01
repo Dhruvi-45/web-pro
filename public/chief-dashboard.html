@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chief Warden Panel</title>
+  <link rel="stylesheet" href="/css/global.css">
+</head>
+
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>Chief Warden Dashboard</h1>
+    <p class="subtitle">Select a Hostel</p>
+  </div>
+
+  <div class="card">
+
+    <button class="btn btn-primary" onclick="go('GH')">GH</button>
+    <button class="btn btn-primary" onclick="go('BH1')">BH1</button>
+    <button class="btn btn-primary" onclick="go('BH2')">BH2</button>
+    <button class="btn btn-primary" onclick="go('BH3')">BH3</button>
+    <button class="btn btn-primary" onclick="go('BH4')">BH4</button>
+    <button class="btn btn-primary" onclick="go('BH5')">BH5</button>
+
+    <br><br>
+    <button class="btn" onclick="logout()">Logout</button>
+
+  </div>
+</div>
+
+<script>
+function go(hostel) {
+  window.location.href = `/${hostel}/dashboard.html`;
+}
+
+function logout() {
+  localStorage.removeItem("user");
+  window.location.href = "/";
+}
+</script>
+
+</body>
+</html>
