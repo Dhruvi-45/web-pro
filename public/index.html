@@ -40,11 +40,16 @@ async function login() {
   const data = await res.json();
 
   if (data.success) {
-    localStorage.setItem("user", JSON.stringify(data.user));
+  localStorage.setItem("user", JSON.stringify(data.user));
+
+  if (data.user.role === "chief_warden") {
     window.location.href = "/dashboard.html";
   } else {
-    alert("Invalid credentials");
+    window.location.href = `/dashboards/${data.user.hostel}/dashboard.html`;
   }
+} else {
+  alert("Invalid credentials");
+}
 }
 </script>
 
