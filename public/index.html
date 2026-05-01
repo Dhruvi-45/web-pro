@@ -45,7 +45,7 @@ async function login() {
   if (data.user.role === "chief_warden") {
     window.location.href = "/dashboard.html";
   } else {
-    window.location.href = `/dashboards/${data.user.hostel}/dashboard.html`;
+    window.location.href = `/${data.user.hostel}/dashboard.html`;
   }
 } else {
   alert("Invalid credentials");

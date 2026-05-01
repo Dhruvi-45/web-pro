@@ -21,7 +21,6 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/rooms', require('./routes/rooms'));
 app.use('/api/students', require('./routes/students'));
 app.use('/api/complaints', require('./routes/complaints'));
-app.use('/api/maintenance', require('./routes/maintenance'));
 app.use('/api/stats', require('./routes/stats'));
 
 // Static frontend

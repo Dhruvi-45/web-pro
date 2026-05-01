@@ -3,7 +3,6 @@ const router = express.Router();
 const Room = require('../models/Room');
 const Student = require('../models/Student');
 const Complaint = require('../models/Complaint');
-const Maintenance = require('../models/Maintenance');
 
 router.get('/', async (req, res) => {
   try {
