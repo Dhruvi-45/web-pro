@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Boys Hostel — Floor Plan Visualizer</title>
+<title>Boys Hostel — Floor Plan</title>
 <style>
 
 /* ══════════════════════════════════════════════
@@ -251,7 +251,7 @@ body {
 <!-- ── PAGE HEADER ── -->
 <div class="page-header">
   <div class="title-box">
-    <h1>Boys Hostel — Floor Plan Visualizer</h1>
+    <h1>Boys Hostel &nbsp;<span style="color:var(--accent);letter-spacing:1px;">BH-4</span></h1>
     <p id="floorSub">Floor 0 (Ground Floor) — Tower A: Mess · Tower B: Active</p>
   </div>
 </div>
@@ -261,7 +261,6 @@ body {
 
 <!-- ── LEGEND ── -->
 <div class="legend">
-  <strong style="font-size:11px;color:#666;margin-right:4px">LEGEND (ROOM OCCUPANCY):</strong>
   <div class="li"><div class="lb" style="background:var(--vacant);border-color:var(--vacant-b)"></div>Vacant</div>
   <div class="li"><div class="lb" style="background:var(--single);border-color:var(--single-b)"></div>Single Occupied</div>
   <div class="li"><div class="lb" style="background:var(--double);border-color:var(--double-b)"></div>Double Occupied</div>
@@ -296,6 +295,18 @@ const TOWER_COLOR = { A: '#1a4a8a', B: '#0d5c40' };
 const TOWER_BG    = { A: '#eef4fd', B: '#edf8f4' };
 
 const tipEl = document.getElementById('tip');
+
+/* ══════════════════════════════════════════════════════════
+   ROOM NUMBER LOGIC
+   Floor 0 → 001–020 (A001–A020, B001–B020)
+   Floor 1 → 101–120 (A101–A120, B101–B120)
+   Floor 2 → 201–220 (A201–A220, B201–B220)
+   ...and so on
+══════════════════════════════════════════════════════════ */
+function getRoomLabel(tower, floor, n) {
+  const base = floor * 100 + n;          // e.g. floor=1, n=7 → 107
+  return tower + String(base).padStart(3, '0');  // e.g. A107
+}
 
 /* ══════════════════════════════════════════════════════════
    SEEDED RANDOM & OCCUPANCY
@@ -353,17 +364,11 @@ function mkWash(sub) {
 
 /* ══════════════════════════════════════════════════════════
    ROOM CELL
-   Layout (clockwise perimeter):
-     Top    001–005  (row 0, left→right, under WR-TL)
-     Left   006–010  → actually these are placed on RIGHT col
-     Right  011–015  → placed on LEFT col  (swapped per user request)
-     Bottom 016–020  (row 6, left→right, before WR-BR)
-   WR: top-left corner & bottom-right corner
 ══════════════════════════════════════════════════════════ */
 function mkRoom(tower, floor, n, statuses) {
   const status = statuses[n];
   const st     = SS[status];
-  const label  = tower + String(n).padStart(3, '0');   // e.g. A001, B007
+  const label  = getRoomLabel(tower, floor, n);
 
   const d = div(
     'width:' + RW + 'px;height:' + RH + 'px;' +
@@ -399,9 +404,6 @@ function mkCourtyard() {
 
 /* ══════════════════════════════════════════════════════════
    TOWER GRID
-   Row 0: [WR-TL] [001–005]          [spacer]
-   Rows 1–5: [LEFT col 011–015] [courtyard] [RIGHT col 006–010]
-   Row 6: [spacer] [016–020]          [WR-BR]
 ══════════════════════════════════════════════════════════ */
 function mkTowerGrid(floor, tower, statuses) {
   const wrap = div('display:inline-flex;flex-direction:column;gap:' + GAP + 'px;');
@@ -454,6 +456,12 @@ function mkTowerBlock(floor, tower) {
   const isMess = (tower === 'A' && floor === 0);
   const block  = div('', 'tower-block');
 
+  // Compute first & last room labels for this floor
+  const firstNum = floor * 100 + 1;
+  const lastNum  = floor * 100 + 20;
+  const firstLbl = tower + String(firstNum).padStart(3, '0');
+  const lastLbl  = tower + String(lastNum).padStart(3, '0');
+
   // Section header
   const hdr = div(
     'display:flex;align-items:center;gap:8px;padding:5px 8px 3px;' +
@@ -466,7 +474,7 @@ function mkTowerBlock(floor, tower) {
   const hdrNote = div('font-size:9px;color:var(--muted);');
   hdrNote.textContent = isMess
     ? 'Mess / Dining Hall — Ground Floor'
-    : '20 rooms per floor · 2 washrooms (perimeter layout)';
+    : 'Rooms ' + firstLbl + ' – ' + lastLbl + ' · 2 washrooms (perimeter layout)';
   hdr.appendChild(hdrLabel);
   hdr.appendChild(hdrNote);
   block.appendChild(hdr);
@@ -514,15 +522,22 @@ function mkConnector() {
    FOOTER
 ══════════════════════════════════════════════════════════ */
 function mkFooter(floor) {
-  const towerAStatus = floor === 0 ? 'Mess / Dining Hall (Ground Floor)' : 'Active — 20 rooms';
+  const firstA = 'A' + String(floor * 100 + 1).padStart(3, '0');
+  const lastA  = 'A' + String(floor * 100 + 20).padStart(3, '0');
+  const firstB = 'B' + String(floor * 100 + 1).padStart(3, '0');
+  const lastB  = 'B' + String(floor * 100 + 20).padStart(3, '0');
+
+  const towerARange = floor === 0 ? 'Mess / Dining Hall (Ground Floor)' : firstA + ' – ' + lastA;
+  const towerBRange = firstB + ' – ' + lastB;
+
   const footer = div('', 'footer');
 
   const stats = div('', 'stats-box');
   stats.innerHTML =
     '<strong>Floor ' + floor + ' — Twin Tower Complex</strong><br>' +
-    'Room Code: [Tower][001–020] (clockwise perimeter)<br>' +
-    'Tower A: ' + towerAStatus + ' · Tower B: Active — 20 rooms<br>' +
-    '<em style="font-size:8px;opacity:.7">e.g. A007 = Tower A · Room 007 on the grid</em>';
+    'Tower A: ' + towerARange + '<br>' +
+    'Tower B: ' + towerBRange + '<br>' +
+    '<em style="font-size:8px;opacity:.7">Room code: [Tower][3-digit number] e.g. A107, B215</em>';
 
   const note = div('', 'note-box');
   note.innerHTML =
@@ -547,7 +562,8 @@ function build(floor) {
   document.getElementById('floorSub').textContent =
     floor === 0
       ? 'Floor 0 (Ground Floor) — Tower A: Mess · Tower B: Active'
-      : 'Floor ' + floor + ' — Both towers active';
+      : 'Floor ' + floor + ' — Tower A: A' + String(floor*100+1).padStart(3,'0') + '–A' + String(floor*100+20).padStart(3,'0') +
+        ' · Tower B: B' + String(floor*100+1).padStart(3,'0') + '–B' + String(floor*100+20).padStart(3,'0');
 
   bp.appendChild(mkTowerBlock(floor, 'A'));
   bp.appendChild(mkConnector());
