@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BH-5 · Boys Hostel Floor Plan Visualizer</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Courier New', Courier, monospace;
+    background: #F5F4EF;
+    min-height: 100vh;
+    padding: 24px 20px 48px;
+    color: #222;
+  }
+
+  /* Header */
+  .header { margin-bottom: 18px; }
+  .header-row { display: flex; align-items: baseline; gap: 12px; }
+  .header h1 { font-size: 22px; font-weight: 700; letter-spacing: 3px; color: #1a2a5e; text-transform: uppercase; }
+  .header span { font-size: 11px; color: #888; letter-spacing: 2px; }
+  .header-line { width: 48px; height: 2px; background: #378ADD; border-radius: 2px; margin-top: 4px; }
+
+  /* Floor Selector */
+  .floor-selector { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+  .floor-btn {
+    padding: 5px 16px; font-size: 12px; border-radius: 5px; cursor: pointer;
+    font-family: 'Courier New', monospace; font-weight: 600; letter-spacing: 1px;
+    border: 1px solid #B5C0D8; background: #fff; color: #3B4F8C;
+    transition: all 0.13s;
+  }
+  .floor-btn.active { border: 1.5px solid #185FA5; background: #185FA5; color: #fff; }
+
+  /* Summary */
+  .summary { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .summary-pill {
+    border-radius: 5px; padding: 6px 14px;
+    font-size: 11px; font-family: 'Courier New', monospace; font-weight: 600;
+  }
+
+  /* Legend */
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+    padding: 9px 14px; background: #F8F7F3;
+    border: 1px solid #D3D1C7; border-radius: 6px;
+    margin-bottom: 16px;
+  }
+  .legend-key { font-size: 9px; font-weight: 700; color: #888; letter-spacing: 1.5px; text-transform: uppercase; margin-right: 4px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-swatch { width: 14px; height: 14px; border-radius: 2px; flex-shrink: 0; }
+  .legend-label { font-size: 10px; color: #444; }
+
+  /* Building layout */
+  .building-layout { display: flex; align-items: stretch; gap: 0; max-width: 860px; }
+  .wings-col { flex: 1; display: flex; flex-direction: column; gap: 14px; }
+
+  /* Wing */
+  .wing {
+    border: 2px solid #3B4F8C; border-radius: 6px; background: #fff;
+    overflow: hidden; flex: 1;
+  }
+  .wing-label {
+    background: #E6F1FB; border-bottom: 1px solid #B5D4F4;
+    font-size: 9px; color: #042C53; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; padding: 3px 12px; text-align: center;
+  }
+  .room-row { display: flex; border-bottom: 1px solid #D3D1C7; }
+  .room-row.last { border-bottom: none; }
+  .corridor {
+    height: 30px;
+    background: repeating-linear-gradient(90deg,#F1EFE8 0,#F1EFE8 8px,#E8E6DF 8px,#E8E6DF 9px);
+    display: flex; align-items: center; justify-content: center;
+    border-bottom: 1px solid #D3D1C7;
+  }
+  .corridor span { font-size: 9px; color: #888; letter-spacing: 2px; text-transform: uppercase; }
+
+  /* Room cell */
+  .room {
+    flex: 1 1 0; min-width: 36px; height: 36px;
+    border: 1.5px solid transparent;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 600; cursor: pointer;
+    transition: filter 0.12s; user-select: none; flex-shrink: 0;
+  }
+  .room:hover { filter: brightness(0.9); }
+  .room.vacant  { background: #C0DD97; border-color: #639922; color: #27500A; }
+  .room.single  { background: #FAC775; border-color: #BA7517; color: #633806; }
+  .room.double  { background: #F0997B; border-color: #D85A30; color: #4A1B0C; }
+
+  /* Stair cell */
+  .stair {
+    width: 38px; min-width: 38px; height: 36px;
+    border: 1.5px solid #378ADD; background: #E6F1FB;
+    position: relative; overflow: hidden; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .stair svg { position: absolute; inset: 0; }
+  .stair-label { position: relative; z-index: 1; font-size: 9px; color: #042C53; font-weight: 600; letter-spacing: 0.5px; }
+
+  /* Reception */
+  .reception {
+    width: 64px; flex-shrink: 0; margin-left: 10px;
+    border: 2px solid #378ADD; border-radius: 6px;
+    background: #E6F1FB; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 6px;
+    padding: 12px 6px;
+  }
+  .reception-text {
+    writing-mode: vertical-rl; text-orientation: mixed;
+    font-size: 10px; font-weight: 700; color: #042C53;
+    letter-spacing: 2px; text-transform: uppercase;
+  }
+  .reception-line { width: 2px; flex: 1; background: #B5D4F4; border-radius: 2px; min-height: 20px; }
+  .reception-icon { font-size: 16px; }
+
+  /* Floor label */
+  .floor-label { max-width: 860px; margin-top: 12px; font-size: 10px; color: #aaa; letter-spacing: 1px; text-align: right; }
+
+  /* Tooltip */
+  #tooltip {
+    position: fixed; z-index: 9999;
+    background: #F5F0E8; border: 1px solid #B5C0D8;
+    border-radius: 5px; padding: 7px 14px;
+    font-size: 11px; color: #1a2a5e;
+    white-space: nowrap; pointer-events: none;
+    box-shadow: 0 2px 12px rgba(59,79,140,0.13);
+    opacity: 0; transition: opacity 0.12s;
+    display: none;
+  }
+  #tooltip.visible { opacity: 1; display: block; }
+  #tooltip strong { font-weight: 700; }
+  .tt-sep { color: #9BA8CC; margin: 0 7px; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-row">
+    <h1>BH-5</h1>
+    <span>Boys Hostel · Floor Plan Visualizer</span>
+  </div>
+  <div class="header-line"></div>
+</div>
+
+<!-- Floor Selector -->
+<div class="floor-selector" id="floorSelector"></div>
+
+<!-- Summary -->
+<div class="summary" id="summary"></div>
+
+<!-- Legend -->
+<div class="legend">
+  <span class="legend-key">KEY</span>
+  <div class="legend-item">
+    <div class="legend-swatch" style="background:#C0DD97;border:1px solid #639922;"></div>
+    <span class="legend-label">Vacant / One-Sitter</span>
+  </div>
+  <div class="legend-item">
+    <div class="legend-swatch" style="background:#FAC775;border:1px solid #BA7517;"></div>
+    <span class="legend-label">Single Occ. / Two-Sitter</span>
+  </div>
+  <div class="legend-item">
+    <div class="legend-swatch" style="background:#F0997B;border:1px solid #D85A30;"></div>
+    <span class="legend-label">Double Occ. / Three-Sitter</span>
+  </div>
+  <div class="legend-item">
+    <div class="legend-swatch" style="background:#B5D4F4;border:1px solid #378ADD;"></div>
+    <span class="legend-label">Staircase / Utility</span>
+  </div>
+  <div class="legend-item">
+    <div class="legend-swatch" style="background:repeating-linear-gradient(90deg,#F1EFE8 0,#F1EFE8 8px,#E8E6DF 8px,#E8E6DF 9px);border:1px solid #D3D1C7;"></div>
+    <span class="legend-label">Corridor</span>
+  </div>
+</div>
+
+<!-- Building Layout -->
+<div class="building-layout">
+  <div class="wings-col">
+    <!-- Top Wing -->
+    <div class="wing" id="topWing">
+      <div class="wing-label">Top Wing — Rooms 501–521</div>
+      <div class="room-row" id="topUpper"></div>
+      <div class="corridor"><span>— corridor —</span></div>
+      <div class="room-row last" id="topLower"></div>
+    </div>
+    <!-- Bottom Wing -->
+    <div class="wing" id="botWing">
+      <div class="wing-label">Bottom Wing — Rooms 522–542</div>
+      <div class="room-row" id="botUpper"></div>
+      <div class="corridor"><span>— corridor —</span></div>
+      <div class="room-row last" id="botLower"></div>
+    </div>
+  </div>
+  <!-- Reception -->
+  <div class="reception">
+    <div class="reception-text">Reception</div>
+    <div class="reception-line"></div>
+    <div class="reception-icon">🏢</div>
+  </div>
+</div>
+
+<div class="floor-label" id="floorLabel"></div>
+
+<!-- Tooltip -->
+<div id="tooltip"></div>
+
+<script>
+  const STATUS_CYCLE = ["vacant","single","double"];
+
+  function seed(n, f) {
+    return STATUS_CYCLE[((n * 7 + f * 13) % 3 + 3) % 3];
+  }
+
+  function buildRoomData(floor) {
+    const rooms = {};
+    for (let i = 0; i < 12; i++) {
+      const n = 501 + i;
+      if (n === 510) continue;
+      rooms[n] = { wing: "Top Wing", side: "North", type: n % 3 === 0 ? "Two-Sitter" : "One-Sitter", status: seed(n, floor), floor };
+    }
+    for (let i = 0; i < 9; i++) {
+      const n = 513 + i;
+      rooms[n] = { wing: "Top Wing", side: "South", type: n % 2 === 0 ? "Two-Sitter" : "One-Sitter", status: seed(n, floor), floor };
+    }
+    for (let i = 0; i < 11; i++) {
+      const n = 522 + i;
+      rooms[n] = { wing: "Bottom Wing", side: "North", type: n % 3 === 0 ? "Two-Sitter" : "One-Sitter", status: seed(n, floor), floor };
+    }
+    for (let i = 0; i < 9; i++) {
+      const n = 534 + i;
+      rooms[n] = { wing: "Bottom Wing", side: "South", type: n % 2 === 0 ? "Two-Sitter" : "One-Sitter", status: seed(n, floor), floor };
+    }
+    return rooms;
+  }
+
+  function makeStair() {
+    const div = document.createElement('div');
+    div.className = 'stair';
+    div.title = 'Staircase';
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('width', '38');
+    svg.setAttribute('height', '36');
+    for (let y = 0; y < 36; y += 4.5) {
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', 0); line.setAttribute('y1', y);
+      line.setAttribute('x2', 38); line.setAttribute('y2', y);
+      line.setAttribute('stroke', '#378ADD');
+      line.setAttribute('stroke-width', '0.8');
+      line.setAttribute('opacity', '0.55');
+      svg.appendChild(line);
+    }
+    div.appendChild(svg);
+    const label = document.createElement('span');
+    label.className = 'stair-label';
+    label.textContent = '▲';
+    div.appendChild(label);
+    return div;
+  }
+
+  function makeRoom(num, meta, tooltip) {
+    const div = document.createElement('div');
+    div.className = 'room ' + (meta ? meta.status : '');
+    div.textContent = num;
+
+    div.addEventListener('mouseenter', (e) => {
+      if (!meta) return;
+      const statusLabel = meta.status === 'vacant' ? 'Vacant' : meta.status === 'single' ? 'Single Occupied' : 'Double Occupied';
+      const sep = `<span class="tt-sep">•</span>`;
+      tooltip.innerHTML = `<strong>BH5-${num}</strong>${sep}${statusLabel}${sep}${meta.wing}${sep}Floor ${meta.floor}${sep}Room ${num}${sep}Type: ${meta.type}${sep}${meta.side} Block`;
+      tooltip.classList.add('visible');
+    });
+    div.addEventListener('mouseleave', () => tooltip.classList.remove('visible'));
+    div.addEventListener('mousemove', (e) => {
+      tooltip.style.left = (e.clientX + 16) + 'px';
+      tooltip.style.top  = (e.clientY - 44) + 'px';
+    });
+    return div;
+  }
+
+  function renderRow(container, items, roomData, tooltip) {
+    container.innerHTML = '';
+    items.forEach(item => {
+      if (item === 'stair') {
+        container.appendChild(makeStair());
+      } else {
+        container.appendChild(makeRoom(item, roomData[item], tooltip));
+      }
+    });
+  }
+
+  function renderSummary(roomData) {
+    const vals = Object.values(roomData);
+    const v = vals.filter(r => r.status === 'vacant').length;
+    const s = vals.filter(r => r.status === 'single').length;
+    const d = vals.filter(r => r.status === 'double').length;
+    const summary = document.getElementById('summary');
+    summary.innerHTML = `
+      <div class="summary-pill" style="background:#C0DD97;color:#27500A;">${v} Vacant</div>
+      <div class="summary-pill" style="background:#FAC775;color:#633806;">${s} Single Occ.</div>
+      <div class="summary-pill" style="background:#F0997B;color:#4A1B0C;">${d} Double Occ.</div>
+      <div class="summary-pill" style="background:#E6F1FB;color:#042C53;">${vals.length} Total Rooms</div>
+    `;
+  }
+
+  const topUpper = [501,502,503,504,505,506,507,508,509,'stair',510,511,512];
+  const topLower = [513,514,515,516,517,518,519,520,521];
+  const botUpper = [522,523,524,525,526,527,528,529,530,'stair',531,532];
+  const botLower = [534,535,536,537,538,539,540,541,542];
+
+  let currentFloor = 0;
+  const tooltip = document.getElementById('tooltip');
+
+  function render(floor) {
+    const roomData = buildRoomData(floor);
+    renderRow(document.getElementById('topUpper'), topUpper, roomData, tooltip);
+    renderRow(document.getElementById('topLower'), topLower, roomData, tooltip);
+    renderRow(document.getElementById('botUpper'), botUpper, roomData, tooltip);
+    renderRow(document.getElementById('botLower'), botLower, roomData, tooltip);
+    renderSummary(roomData);
+    document.getElementById('floorLabel').textContent =
+      `Viewing Floor ${floor} · ${Object.keys(roomData).length} active rooms`;
+    document.querySelectorAll('.floor-btn').forEach(btn => {
+      btn.classList.toggle('active', parseInt(btn.dataset.floor) === floor);
+    });
+  }
+
+  // Build floor buttons
+  const floorSelector = document.getElementById('floorSelector');
+  [0,1,2,3,4].forEach(f => {
+    const btn = document.createElement('button');
+    btn.className = 'floor-btn';
+    btn.dataset.floor = f;
+    btn.textContent = `Floor ${f}`;
+    btn.addEventListener('click', () => { currentFloor = f; render(f); });
+    floorSelector.appendChild(btn);
+  });
+
+  render(currentFloor);
+</script>
+</body>
+</html>
