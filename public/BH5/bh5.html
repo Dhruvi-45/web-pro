@@ -1,343 +1,364 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>BH-5 · Boys Hostel Floor Plan Visualizer</title>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+<meta charset="UTF-8">
 
-  body {
-    font-family: 'Courier New', Courier, monospace;
-    background: #F5F4EF;
-    min-height: 100vh;
-    padding: 24px 20px 48px;
-    color: #222;
-  }
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-  /* Header */
-  .header { margin-bottom: 18px; }
-  .header-row { display: flex; align-items: baseline; gap: 12px; }
-  .header h1 { font-size: 22px; font-weight: 700; letter-spacing: 3px; color: #1a2a5e; text-transform: uppercase; }
-  .header span { font-size: 11px; color: #888; letter-spacing: 2px; }
-  .header-line { width: 48px; height: 2px; background: #378ADD; border-radius: 2px; margin-top: 4px; }
-
-  /* Floor Selector */
-  .floor-selector { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
-  .floor-btn {
-    padding: 5px 16px; font-size: 12px; border-radius: 5px; cursor: pointer;
-    font-family: 'Courier New', monospace; font-weight: 600; letter-spacing: 1px;
-    border: 1px solid #B5C0D8; background: #fff; color: #3B4F8C;
-    transition: all 0.13s;
-  }
-  .floor-btn.active { border: 1.5px solid #185FA5; background: #185FA5; color: #fff; }
-
-  /* Summary */
-  .summary { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
-  .summary-pill {
-    border-radius: 5px; padding: 6px 14px;
-    font-size: 11px; font-family: 'Courier New', monospace; font-weight: 600;
-  }
-
-  /* Legend */
-  .legend {
-    display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
-    padding: 9px 14px; background: #F8F7F3;
-    border: 1px solid #D3D1C7; border-radius: 6px;
-    margin-bottom: 16px;
-  }
-  .legend-key { font-size: 9px; font-weight: 700; color: #888; letter-spacing: 1.5px; text-transform: uppercase; margin-right: 4px; }
-  .legend-item { display: flex; align-items: center; gap: 6px; }
-  .legend-swatch { width: 14px; height: 14px; border-radius: 2px; flex-shrink: 0; }
-  .legend-label { font-size: 10px; color: #444; }
-
-  /* Building layout */
-  .building-layout { display: flex; align-items: stretch; gap: 0; max-width: 860px; }
-  .wings-col { flex: 1; display: flex; flex-direction: column; gap: 14px; }
-
-  /* Wing */
-  .wing {
-    border: 2px solid #3B4F8C; border-radius: 6px; background: #fff;
-    overflow: hidden; flex: 1;
-  }
-  .wing-label {
-    background: #E6F1FB; border-bottom: 1px solid #B5D4F4;
-    font-size: 9px; color: #042C53; font-weight: 700; letter-spacing: 2px;
-    text-transform: uppercase; padding: 3px 12px; text-align: center;
-  }
-  .room-row { display: flex; border-bottom: 1px solid #D3D1C7; }
-  .room-row.last { border-bottom: none; }
-  .corridor {
-    height: 30px;
-    background: repeating-linear-gradient(90deg,#F1EFE8 0,#F1EFE8 8px,#E8E6DF 8px,#E8E6DF 9px);
-    display: flex; align-items: center; justify-content: center;
-    border-bottom: 1px solid #D3D1C7;
-  }
-  .corridor span { font-size: 9px; color: #888; letter-spacing: 2px; text-transform: uppercase; }
-
-  /* Room cell */
-  .room {
-    flex: 1 1 0; min-width: 36px; height: 36px;
-    border: 1.5px solid transparent;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 10px; font-weight: 600; cursor: pointer;
-    transition: filter 0.12s; user-select: none; flex-shrink: 0;
-  }
-  .room:hover { filter: brightness(0.9); }
-  .room.vacant  { background: #C0DD97; border-color: #639922; color: #27500A; }
-  .room.single  { background: #FAC775; border-color: #BA7517; color: #633806; }
-  .room.double  { background: #F0997B; border-color: #D85A30; color: #4A1B0C; }
-
-  /* Stair cell */
-  .stair {
-    width: 38px; min-width: 38px; height: 36px;
-    border: 1.5px solid #378ADD; background: #E6F1FB;
-    position: relative; overflow: hidden; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .stair svg { position: absolute; inset: 0; }
-  .stair-label { position: relative; z-index: 1; font-size: 9px; color: #042C53; font-weight: 600; letter-spacing: 0.5px; }
-
-  /* Reception */
-  .reception {
-    width: 64px; flex-shrink: 0; margin-left: 10px;
-    border: 2px solid #378ADD; border-radius: 6px;
-    background: #E6F1FB; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; gap: 6px;
-    padding: 12px 6px;
-  }
-  .reception-text {
-    writing-mode: vertical-rl; text-orientation: mixed;
-    font-size: 10px; font-weight: 700; color: #042C53;
-    letter-spacing: 2px; text-transform: uppercase;
-  }
-  .reception-line { width: 2px; flex: 1; background: #B5D4F4; border-radius: 2px; min-height: 20px; }
-  .reception-icon { font-size: 16px; }
-
-  /* Floor label */
-  .floor-label { max-width: 860px; margin-top: 12px; font-size: 10px; color: #aaa; letter-spacing: 1px; text-align: right; }
-
-  /* Tooltip */
-  #tooltip {
-    position: fixed; z-index: 9999;
-    background: #F5F0E8; border: 1px solid #B5C0D8;
-    border-radius: 5px; padding: 7px 14px;
-    font-size: 11px; color: #1a2a5e;
-    white-space: nowrap; pointer-events: none;
-    box-shadow: 0 2px 12px rgba(59,79,140,0.13);
-    opacity: 0; transition: opacity 0.12s;
-    display: none;
-  }
-  #tooltip.visible { opacity: 1; display: block; }
-  #tooltip strong { font-weight: 700; }
-  .tt-sep { color: #9BA8CC; margin: 0 7px; }
-</style>
 </head>
+
 <body>
 
-<!-- Header -->
-<div class="header">
-  <div class="header-row">
-    <h1>BH-5</h1>
-    <span>Boys Hostel · Floor Plan Visualizer</span>
-  </div>
-  <div class="header-line"></div>
-</div>
+<div id="root"></div>
 
-<!-- Floor Selector -->
-<div class="floor-selector" id="floorSelector"></div>
+<script type="text/babel">
 
-<!-- Summary -->
-<div class="summary" id="summary"></div>
+// 🔥 yaha tum apna FULL JS paste karo (changes ke baad)
+const { useCallback, useState } =React;
 
-<!-- Legend -->
-<div class="legend">
-  <span class="legend-key">KEY</span>
-  <div class="legend-item">
-    <div class="legend-swatch" style="background:#C0DD97;border:1px solid #639922;"></div>
-    <span class="legend-label">Vacant / One-Sitter</span>
-  </div>
-  <div class="legend-item">
-    <div class="legend-swatch" style="background:#FAC775;border:1px solid #BA7517;"></div>
-    <span class="legend-label">Single Occ. / Two-Sitter</span>
-  </div>
-  <div class="legend-item">
-    <div class="legend-swatch" style="background:#F0997B;border:1px solid #D85A30;"></div>
-    <span class="legend-label">Double Occ. / Three-Sitter</span>
-  </div>
-  <div class="legend-item">
-    <div class="legend-swatch" style="background:#B5D4F4;border:1px solid #378ADD;"></div>
-    <span class="legend-label">Staircase / Utility</span>
-  </div>
-  <div class="legend-item">
-    <div class="legend-swatch" style="background:repeating-linear-gradient(90deg,#F1EFE8 0,#F1EFE8 8px,#E8E6DF 8px,#E8E6DF 9px);border:1px solid #D3D1C7;"></div>
-    <span class="legend-label">Corridor</span>
-  </div>
-</div>
+// ── Palette ────────────────────────────────────────────────────────────────────
+const P = {
+  vacant:  { bg: "#d4e9b0", border: "#5a8a2a", text: "#2e5010" },
+  single:  { bg: "#f5d08a", border: "#c08a10", text: "#5a3a05" },
+  double:  { bg: "#f0b080", border: "#c05a20", text: "#4a1a05" },
+  stair:   { bg: "#a0bcd8", border: "#3a6898", text: "#0a2040" },
+  empty:   { bg: "#f8f5ee", border: "transparent", text: "#999" },
+};
 
-<!-- Building Layout -->
-<div class="building-layout">
-  <div class="wings-col">
-    <!-- Top Wing -->
-    <div class="wing" id="topWing">
-      <div class="wing-label">Top Wing — Rooms 501–521</div>
-      <div class="room-row" id="topUpper"></div>
-      <div class="corridor"><span>— corridor —</span></div>
-      <div class="room-row last" id="topLower"></div>
+const STATUS_CYCLE = ["vacant", "single", "double"];
+
+const GLOBAL_CSS = `
+  body, #root {
+    margin: 0; padding: 0;
+    background: #f0ece0;
+    background-image:
+      repeating-linear-gradient(0deg,  transparent, transparent 27px, rgba(100,90,70,.07) 27px, rgba(100,90,70,.07) 28px),
+      repeating-linear-gradient(90deg, transparent, transparent 27px, rgba(100,90,70,.04) 27px, rgba(100,90,70,.04) 28px);
+    min-height: 100vh;
+  }
+  .bh5-room:hover {
+    filter: brightness(.82) !important;
+    transform: scale(1.1);
+    z-index: 20;
+    position: relative;
+    box-shadow: 0 2px 8px rgba(0,0,0,.22);
+  }
+`;
+
+// ── Room metadata (Floor 0 only) ───────────────────────────────────────────────
+function buildRoomData() {
+  const floor = 0;
+  const seed = (n, f) => STATUS_CYCLE[((n * 7 + f * 13) % 3 + 3) % 3];
+  const rooms = {};
+
+  [...Array(12)].forEach((_, i) => {
+    const n = 501 + i;
+    if (n === 510) return;
+    rooms[n] = { wing: "Top Wing", side: "North", type: n % 3 === 0 ? "Two-Sitter" : "One-Sitter", status: seed(n, floor), floor };
+  });
+  [...Array(9)].forEach((_, i) => {
+    const n = 513 + i;
+    rooms[n] = { wing: "Top Wing", side: "South", type: n % 2 === 0 ? "Two-Sitter" : "One-Sitter", status: seed(n, floor), floor };
+  });
+  [...Array(11)].forEach((_, i) => {
+    const n = 522 + i;
+    rooms[n] = { wing: "Bottom Wing", side: "North", type: n % 3 === 0 ? "Two-Sitter" : "One-Sitter", status: seed(n, floor), floor };
+  });
+  [...Array(9)].forEach((_, i) => {
+    const n = 534 + i;
+    rooms[n] = { wing: "Bottom Wing", side: "South", type: n % 2 === 0 ? "Two-Sitter" : "One-Sitter", status: seed(n, floor), floor };
+  });
+  return rooms;
+}
+
+// ── Tooltip bar ────────────────────────────────────────────────────────────────
+function TooltipBar({ data, visible }) {
+  if (!visible || !data) {
+    return (
+      <div style={tipBarStyle}>
+        <span style={{ color: "#9a9080" }}>Hover over any room to see details</span>
+      </div>
+    );
+  }
+  const { num, wing, side, type, status, floor } = data;
+  const statusLabel = status === "vacant" ? "Vacant" : status === "single" ? "Single Occupied" : "Double Occupied";
+  const dot = <span style={{ color: "#bcbaa8", margin: "0 7px" }}>·</span>;
+  return (
+    <div style={tipBarStyle}>
+      <strong style={{ color: "#18160e" }}>BH5-{num}</strong>
+      {dot}{statusLabel}{dot}{wing}{dot}Floor <strong style={{ color: "#18160e" }}>{floor}</strong>
+      {dot}Type: {type}{dot}{side} Block
     </div>
-    <!-- Bottom Wing -->
-    <div class="wing" id="botWing">
-      <div class="wing-label">Bottom Wing — Rooms 522–542</div>
-      <div class="room-row" id="botUpper"></div>
-      <div class="corridor"><span>— corridor —</span></div>
-      <div class="room-row last" id="botLower"></div>
+  );
+}
+
+const tipBarStyle = {
+  background: "#f8f5ee",
+  border: "1.5px solid #7a7060",
+  borderRadius: 2,
+  padding: "5px 12px",
+  fontSize: 11,
+  color: "#5a5040",
+  marginTop: 8,
+  minHeight: 28,
+  display: "flex",
+  alignItems: "center",
+  gap: 4,
+  fontFamily: "'Courier New', Courier, monospace",
+};
+
+// ── Staircase cell ─────────────────────────────────────────────────────────────
+function Stair({ size = { w: 44, h: 40 } }) {
+  const stripes = [];
+  for (let y = 0; y < size.h; y += 4.5) stripes.push(y);
+  return (
+    <div title="Staircase" style={{
+      width: size.w, minWidth: size.w, height: size.h,
+      border: `1px solid ${P.stair.border}`,
+      background: P.stair.bg,
+      position: "relative", overflow: "hidden", flexShrink: 0,
+      borderRadius: 1,
+    }}>
+      <svg width={size.w} height={size.h} style={{ position: "absolute", inset: 0 }}>
+        {stripes.map((y, i) => (
+          <line key={i} x1={0} y1={y} x2={size.w} y2={y}
+            stroke="#3a6898" strokeWidth={0.8} opacity={0.55} />
+        ))}
+      </svg>
+      <span style={{
+        position: "relative", zIndex: 1,
+        display: "flex", height: "100%",
+        alignItems: "center", justifyContent: "center",
+        fontSize: 10, color: P.stair.text, fontWeight: 700,
+      }}>▲</span>
     </div>
-  </div>
-  <!-- Reception -->
-  <div class="reception">
-    <div class="reception-text">Reception</div>
-    <div class="reception-line"></div>
-    <div class="reception-icon">🏢</div>
-  </div>
-</div>
+  );
+}
 
-<div class="floor-label" id="floorLabel"></div>
+// ── Room cell ──────────────────────────────────────────────────────────────────
+function Room({ num, meta, onEnter, onLeave, onMove }) {
+  const pal = meta ? P[meta.status] : P.empty;
+  return (
+    <div
+      className="bh5-room"
+      onMouseEnter={e => onEnter(e, num, meta)}
+      onMouseLeave={onLeave}
+      onMouseMove={onMove}
+      style={{
+        flex: "1 1 0", minWidth: 44, height: 40,
+        border: `1px solid ${pal.border}`,
+        background: pal.bg, color: pal.text,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        fontSize: 9, fontWeight: 700, cursor: "default",
+        userSelect: "none", flexShrink: 0,
+        fontFamily: "'Courier New', monospace",
+        borderRadius: 1,
+        letterSpacing: -0.3,
+        transition: "filter .1s, transform .1s",
+      }}
+    >
+      {num}
+    </div>
+  );
+}
 
-<!-- Tooltip -->
-<div id="tooltip"></div>
+// ── Wing (no heading) ──────────────────────────────────────────────────────────
+function Wing({ topRooms, bottomRooms, roomData, onEnter, onLeave, onMove }) {
+  return (
+    <div style={{
+      border: "1.5px solid #7a7060",
+      borderRadius: 2,
+      background: "#f8f5ee",
+      overflow: "hidden",
+    }}>
+      {/* Top row */}
+      <div style={{ display: "flex", gap: 2, padding: "4px 4px 2px", borderBottom: "1px solid #bcbaa8" }}>
+        {topRooms.map((item, i) =>
+          item === "stair"
+            ? <Stair key={`stair-${i}`} />
+            : <Room key={item} num={item} meta={roomData[item]} onEnter={onEnter} onLeave={onLeave} onMove={onMove} />
+        )}
+      </div>
 
-<script>
-  const STATUS_CYCLE = ["vacant","single","double"];
+      {/* Corridor */}
+      <div style={{
+        height: 26,
+        background: "repeating-linear-gradient(90deg,#e8e4d8 0,#e8e4d8 8px,#dedad1 8px,#dedad1 9px)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        borderTop: "1px solid #bcbaa8",
+        borderBottom: "1px solid #bcbaa8",
+      }}>
+        <span style={{ fontSize: 8, color: "#888", letterSpacing: 2, textTransform: "uppercase", fontFamily: "'Courier New', monospace" }}>
+          — corridor —
+        </span>
+      </div>
 
-  function seed(n, f) {
-    return STATUS_CYCLE[((n * 7 + f * 13) % 3 + 3) % 3];
-  }
+      {/* Bottom row */}
+      <div style={{ display: "flex", gap: 2, padding: "2px 4px 4px" }}>
+        {bottomRooms.map((item, i) =>
+          item === "stair"
+            ? <Stair key={`stair-${i}`} />
+            : <Room key={item} num={item} meta={roomData[item]} onEnter={onEnter} onLeave={onLeave} onMove={onMove} />
+        )}
+      </div>
+    </div>
+  );
+}
 
-  function buildRoomData(floor) {
-    const rooms = {};
-    for (let i = 0; i < 12; i++) {
-      const n = 501 + i;
-      if (n === 510) continue;
-      rooms[n] = { wing: "Top Wing", side: "North", type: n % 3 === 0 ? "Two-Sitter" : "One-Sitter", status: seed(n, floor), floor };
-    }
-    for (let i = 0; i < 9; i++) {
-      const n = 513 + i;
-      rooms[n] = { wing: "Top Wing", side: "South", type: n % 2 === 0 ? "Two-Sitter" : "One-Sitter", status: seed(n, floor), floor };
-    }
-    for (let i = 0; i < 11; i++) {
-      const n = 522 + i;
-      rooms[n] = { wing: "Bottom Wing", side: "North", type: n % 3 === 0 ? "Two-Sitter" : "One-Sitter", status: seed(n, floor), floor };
-    }
-    for (let i = 0; i < 9; i++) {
-      const n = 534 + i;
-      rooms[n] = { wing: "Bottom Wing", side: "South", type: n % 2 === 0 ? "Two-Sitter" : "One-Sitter", status: seed(n, floor), floor };
-    }
-    return rooms;
-  }
+// ── Legend ─────────────────────────────────────────────────────────────────────
+function Legend() {
+  const items = [
+    ["#d4e9b0", "#5a8a2a", "Vacant / One-Sitter"],
+    ["#f5d08a", "#c08a10", "Single Occ. / Two-Sitter"],
+    ["#f0b080", "#c05a20", "Double Occ. / Three-Sitter"],
+    [null,      "#3a6898", "Staircase / Utility"],
+    ["repeating-linear-gradient(90deg,#e8e4d8 0,#e8e4d8 8px,#dedad1 8px,#dedad1 9px)", "#bcbaa8", "Corridor"],
+  ];
+  return (
+    <div style={{
+      display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center",
+      padding: "7px 12px", background: "#f8f5ee",
+      border: "1.5px solid #7a7060", borderRadius: 2,
+      marginBottom: 10, fontFamily: "'Courier New', monospace",
+    }}>
+      <strong style={{ fontSize: 11, color: "#666", marginRight: 4 }}>LEGEND:</strong>
+      {items.map(([bg, border, label]) => (
+        <div key={label} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <div style={{
+            width: 14, height: 10, borderRadius: 1,
+            background: bg ?? "repeating-linear-gradient(45deg,#a0bcd8,#a0bcd8 3px,rgba(58,104,152,.3) 3px,rgba(58,104,152,.3) 6px)",
+            border: `1px solid ${border}`,
+            flexShrink: 0,
+          }} />
+          <span style={{ fontSize: 9.5, color: "#5a5040" }}>{label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
 
-  function makeStair() {
-    const div = document.createElement('div');
-    div.className = 'stair';
-    div.title = 'Staircase';
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('width', '38');
-    svg.setAttribute('height', '36');
-    for (let y = 0; y < 36; y += 4.5) {
-      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-      line.setAttribute('x1', 0); line.setAttribute('y1', y);
-      line.setAttribute('x2', 38); line.setAttribute('y2', y);
-      line.setAttribute('stroke', '#378ADD');
-      line.setAttribute('stroke-width', '0.8');
-      line.setAttribute('opacity', '0.55');
-      svg.appendChild(line);
-    }
-    div.appendChild(svg);
-    const label = document.createElement('span');
-    label.className = 'stair-label';
-    label.textContent = '▲';
-    div.appendChild(label);
-    return div;
-  }
+// ── Footer note ────────────────────────────────────────────────────────────────
+function FooterNote({ roomData }) {
+  const vals = Object.values(roomData);
+  const v = vals.filter(r => r.status === "vacant").length;
+  const s = vals.filter(r => r.status === "single").length;
+  const d = vals.filter(r => r.status === "double").length;
+  return (
+    <div style={{
+      display: "flex", gap: 8, flexWrap: "wrap",
+      marginTop: 12, borderTop: "1px solid #bcbaa8", paddingTop: 8,
+    }}>
+      <div style={{
+        border: "1.5px solid #7a7060", padding: "8px 20px",
+        background: "#e8e4d8", fontSize: 9, lineHeight: 1.9,
+        textAlign: "center", borderRadius: 2, flex: 1,
+        fontFamily: "'Courier New', monospace",
+      }}>
+        <strong>Floor 0 (Ground Floor) — BH5</strong><br />
+        Room Range: 501–542 &nbsp;·&nbsp; Top Wing: 501–521 &nbsp;·&nbsp; Bottom Wing: 522–542<br />
+        Vacant: {v} &nbsp;·&nbsp; Single Occ.: {s} &nbsp;·&nbsp; Double Occ.: {d} &nbsp;·&nbsp; Total: {vals.length}
+      </div>
+      <div style={{
+        border: "1.5px solid #7a7060", padding: "8px 14px",
+        background: "#f8f5ee", fontSize: 9, lineHeight: 1.9,
+        borderRadius: 2, flex: 1,
+        fontFamily: "'Courier New', monospace",
+      }}>
+        <strong>NOTE:</strong><br />
+        Two wings: Top Wing (501–521) &amp; Bottom Wing (522–542)<br />
+        Each wing has North &amp; South rows with a Corridor in between<br />
+        Staircases marked with ▲ between room groups
+      </div>
+    </div>
+  );
+}
 
-  function makeRoom(num, meta, tooltip) {
-    const div = document.createElement('div');
-    div.className = 'room ' + (meta ? meta.status : '');
-    div.textContent = num;
+// ── App ────────────────────────────────────────────────────────────────────────Ffufunction App() {
+  const [tipData, setTipData] = useState({ visible: false, data: null });
+  const roomData = buildRoomData();
 
-    div.addEventListener('mouseenter', (e) => {
-      if (!meta) return;
-      const statusLabel = meta.status === 'vacant' ? 'Vacant' : meta.status === 'single' ? 'Single Occupied' : 'Double Occupied';
-      const sep = `<span class="tt-sep">•</span>`;
-      tooltip.innerHTML = `<strong>BH5-${num}</strong>${sep}${statusLabel}${sep}${meta.wing}${sep}Floor ${meta.floor}${sep}Room ${num}${sep}Type: ${meta.type}${sep}${meta.side} Block`;
-      tooltip.classList.add('visible');
-    });
-    div.addEventListener('mouseleave', () => tooltip.classList.remove('visible'));
-    div.addEventListener('mousemove', (e) => {
-      tooltip.style.left = (e.clientX + 16) + 'px';
-      tooltip.style.top  = (e.clientY - 44) + 'px';
-    });
-    return div;
-  }
+  const handleEnter = useCallback((e, num, meta) => {
+    setTipData({ visible: true, data: { num, ...meta } });
+  }, []);
+  const handleLeave = useCallback(() => setTipData(t => ({ ...t, visible: false })), []);
+  const handleMove  = useCallback(() => {}, []);
 
-  function renderRow(container, items, roomData, tooltip) {
-    container.innerHTML = '';
-    items.forEach(item => {
-      if (item === 'stair') {
-        container.appendChild(makeStair());
-      } else {
-        container.appendChild(makeRoom(item, roomData[item], tooltip));
-      }
-    });
-  }
-
-  function renderSummary(roomData) {
-    const vals = Object.values(roomData);
-    const v = vals.filter(r => r.status === 'vacant').length;
-    const s = vals.filter(r => r.status === 'single').length;
-    const d = vals.filter(r => r.status === 'double').length;
-    const summary = document.getElementById('summary');
-    summary.innerHTML = `
-      <div class="summary-pill" style="background:#C0DD97;color:#27500A;">${v} Vacant</div>
-      <div class="summary-pill" style="background:#FAC775;color:#633806;">${s} Single Occ.</div>
-      <div class="summary-pill" style="background:#F0997B;color:#4A1B0C;">${d} Double Occ.</div>
-      <div class="summary-pill" style="background:#E6F1FB;color:#042C53;">${vals.length} Total Rooms</div>
-    `;
-  }
-
-  const topUpper = [501,502,503,504,505,506,507,508,509,'stair',510,511,512];
+  const topUpper = [501,502,503,504,505,506,507,508,509,"stair",510,511,512];
   const topLower = [513,514,515,516,517,518,519,520,521];
-  const botUpper = [522,523,524,525,526,527,528,529,530,'stair',531,532];
+  const botUpper = [522,523,524,525,526,527,528,529,530,"stair",531,532];
   const botLower = [534,535,536,537,538,539,540,541,542];
 
-  let currentFloor = 0;
-  const tooltip = document.getElementById('tooltip');
+  return (
+    <>
+      <style>{GLOBAL_CSS}</style>
 
-  function render(floor) {
-    const roomData = buildRoomData(floor);
-    renderRow(document.getElementById('topUpper'), topUpper, roomData, tooltip);
-    renderRow(document.getElementById('topLower'), topLower, roomData, tooltip);
-    renderRow(document.getElementById('botUpper'), botUpper, roomData, tooltip);
-    renderRow(document.getElementById('botLower'), botLower, roomData, tooltip);
-    renderSummary(roomData);
-    document.getElementById('floorLabel').textContent =
-      `Viewing Floor ${floor} · ${Object.keys(roomData).length} active rooms`;
-    document.querySelectorAll('.floor-btn').forEach(btn => {
-      btn.classList.toggle('active', parseInt(btn.dataset.floor) === floor);
-    });
-  }
+      <div style={{
+        fontFamily: "'Courier New', Courier, monospace",
+        minHeight: "100vh",
+        padding: "16px 12px 40px",
+        color: "#18160e",
+      }}>
 
-  // Build floor buttons
-  const floorSelector = document.getElementById('floorSelector');
-  [0,1,2,3,4].forEach(f => {
-    const btn = document.createElement('button');
-    btn.className = 'floor-btn';
-    btn.dataset.floor = f;
-    btn.textContent = `Floor ${f}`;
-    btn.addEventListener('click', () => { currentFloor = f; render(f); });
-    floorSelector.appendChild(btn);
-  });
+        {/* Title */}
+        <div style={{ marginBottom: 10 }}>
+          <div style={{
+            display: "inline-block",
+            border: "2px solid #7a7060", background: "#f8f5ee",
+            padding: "7px 14px 8px", borderRadius: 2,
+          }}>
+            <h1 style={{ fontSize: 14, fontWeight: 700, letterSpacing: 0.3, color: "#18160e", margin: 0 }}>
+              Boys Hostel — Floor Plan Visualizer
+            </h1>
+            <p style={{ fontSize: 9.5, color: "#5a5040", marginTop: 2 }}>
+              Floor 0 (Ground Floor)
+            </p>
+          </div>
+        </div>
 
-  render(currentFloor);
+        <Legend />
+
+        {/* Blueprint canvas */}
+        <div style={{
+          background: "#f8f5ee",
+          border: "2.5px solid #7a7060",
+          borderRadius: 3,
+          padding: 10,
+          boxShadow: "4px 4px 0 rgba(0,0,0,.08), 8px 8px 0 rgba(0,0,0,.04)",
+          overflowX: "auto",
+        }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <Wing
+              topRooms={topUpper}
+              bottomRooms={topLower}
+              roomData={roomData}
+              onEnter={handleEnter}
+              onLeave={handleLeave}
+              onMove={handleMove}
+            />
+            <Wing
+              topRooms={botUpper}
+              bottomRooms={botLower}
+              roomData={roomData}
+              onEnter={handleEnter}
+              onLeave={handleLeave}
+              onMove={handleMove}
+            />
+          </div>
+
+          <FooterNote roomData={roomData} />
+        </div>
+
+        {/* Tooltip bar */}
+        <TooltipBar data={tipData.data} visible={tipData.visible} />
+      </div>
+    </>
+  );
+}
+  const root = ReactDOM.createRoot(document.getElementById("root"));
+  root.render(<App />);
 </script>
+
 </body>
 </html>
