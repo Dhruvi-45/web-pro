@@ -17,6 +17,7 @@
   --single:   #f5d08a; --single-b:  #c08a10; --single-t:  #5a3a05;
   --double:   #f0b080; --double-b:  #c05a20; --double-t:  #4a1a05;
   --full:     #c8687a; --full-b:    #8c2a38; --full-t:    #ffffff;
+  --triple:   #9b59b6; --triple-b:  #6c3483; --triple-t:  #ffffff;
   --maint:    #c8c4b8; --maint-b:   #808070; --maint-t:   #383830;
   /* Special cells */
   --wash:     #a0bcd8; --wash-b:    #3a6898; --wash-t:    #0a2040;
@@ -215,14 +216,13 @@ body {
 <!-- Floor selector buttons (injected by JS) -->
 <div class="floor-sel" id="floorSel"></div>
 
-<!-- Legend -->
+<!-- Color Coding -->
 <div class="legend">
-  <strong>LEGEND (ROOM OCCUPANCY):</strong>
+  <strong>COLOR CODING:</strong>
   <div class="li"><div class="lb" style="background:var(--vacant); border-color:var(--vacant-b)"></div>Vacant</div>
-  <div class="li"><div class="lb" style="background:var(--single); border-color:var(--single-b)"></div>Single Occupied</div>
-  <div class="li"><div class="lb" style="background:var(--double); border-color:var(--double-b)"></div>Double Occupied</div>
-  <div class="li"><div class="lb" style="background:var(--full);   border-color:var(--full-b)"  ></div>Full / Triple</div>
-  <div class="li"><div class="lb" style="background:var(--maint);  border-color:var(--maint-b)" ></div>Maintenance</div>
+  <div class="li"><div class="lb" style="background:var(--full);   border-color:var(--full-b)"  ></div>Fully Occupied</div>
+  <div class="li"><div class="lb" style="background:var(--triple); border-color:var(--triple-b)"></div>Triple Room</div>
+  <div class="li"><div class="lb" style="background:var(--maint);  border-color:var(--maint-b)" ></div>Under Maintenance</div>
   <div class="li">
     <div class="lb" style="
       background: var(--wash); border-color: var(--wash-b);
@@ -252,24 +252,27 @@ const WC = {
 
 /* Occupancy status styles */
 const SS = {
-  vacant: { bg: 'var(--vacant)', b: 'var(--vacant-b)', t: 'var(--vacant-t)', lbl: 'Vacant'          },
-  single: { bg: 'var(--single)', b: 'var(--single-b)', t: 'var(--single-t)', lbl: 'Single Occupied'  },
-  double: { bg: 'var(--double)', b: 'var(--double-b)', t: 'var(--double-t)', lbl: 'Double Occupied'  },
-  full:   { bg: 'var(--full)',   b: 'var(--full-b)',   t: 'var(--full-t)',   lbl: 'Full / Triple'    },
-  maint:  { bg: 'var(--maint)',  b: 'var(--maint-b)',  t: 'var(--maint-t)', lbl: 'Maintenance'       },
+  vacant: { bg: 'var(--vacant)', b: 'var(--vacant-b)', t: 'var(--vacant-t)', lbl: 'Vacant'            },
+  single: { bg: 'var(--single)', b: 'var(--single-b)', t: 'var(--single-t)', lbl: 'Partially Occupied' },
+  double: { bg: 'var(--double)', b: 'var(--double-b)', t: 'var(--double-t)', lbl: 'Partially Occupied' },
+  full:   { bg: 'var(--full)',   b: 'var(--full-b)',   t: 'var(--full-t)',   lbl: 'Fully Occupied'     },
+  triple: { bg: 'var(--triple)', b: 'var(--triple-b)', t: 'var(--triple-t)', lbl: 'Triple Room'        },
+  maint:  { bg: 'var(--maint)',  b: 'var(--maint-b)',  t: 'var(--maint-t)', lbl: 'Under Maintenance'   },
 };
 
 /*
  * Room type metadata per wing key — shown in hover tooltip.
  */
 const ROOM_META = {
-  A:  { name: 'Wing A',             type: 'Two-Sitter',  pos: 'A-Wing Left/Right Breadth' },
-  AT: { name: 'Wing A — Top Row',   type: 'Two-Sitter',  pos: 'A-Wing Top Perimeter'      },
-  B:  { name: 'Wing B — Side',      type: 'One-Sitter',  pos: 'B-Wing Left & Right Side'  },
-  BC: { name: 'Wing B — Centre',    type: 'Two-Sitter',  pos: 'B-Wing Centre'             },
-  BR: { name: 'Wing B — Bottom Row',type: 'One-Sitter',  pos: 'Bottom Perimeter'          },
-  C:  { name: 'Wing C',             type: 'Two-Sitter',  pos: 'C-Wing Left & Right Breadth'},
-  CR: { name: 'Wing C — Bottom Row',type: 'One-Sitter',  pos: 'C-Wing Bottom Perimeter'   },
+  A:   { name: 'Wing A',                  cap: 'Double Room',  pos: 'A-Wing Left/Right Breadth'    },
+  AM:  { name: 'Wing A — Middle',         cap: 'Double Room',  pos: 'A-Wing Centre Column'         },
+  AT:  { name: 'Wing A — Top Row',        cap: 'Double Room',  pos: 'A-Wing Top Perimeter'         },
+  ATR: { name: 'Wing A — Triple Room',    cap: 'Triple Room',  pos: 'A-Wing Bottom (Triple Block)' },
+  B:   { name: 'Wing B — Side',           cap: 'Single Room',  pos: 'B-Wing Left & Right Side'     },
+  BC:  { name: 'Wing B — Centre',         cap: 'Double Room',  pos: 'B-Wing Centre'                },
+  BR:  { name: 'Wing B — Bottom Row',     cap: 'Single Room',  pos: 'Bottom Perimeter'             },
+  C:   { name: 'Wing C',                  cap: 'Double Room',  pos: 'C-Wing Left & Right Breadth'  },
+  CR:  { name: 'Wing C — Bottom Row',     cap: 'Single Room',  pos: 'C-Wing Bottom Perimeter'      },
 };
 
 /* Reference to the hover-info bar */
@@ -312,6 +315,43 @@ function mkCol(extraStyle) {
 
 
 /* ══════════════════════════════════════════════════════════
+   TRIPLE ROOM CELL  (fixed status = triple, A-Wing bottom)
+   num     — room serial 1 or 2  →  code  AT[floor]1 / AT[floor]2
+══════════════════════════════════════════════════════════ */
+function mkTripleRoom(floor, num, w, h) {
+  w = w || 90;
+  h = h || 26;
+  const st       = SS['triple'];
+  const meta     = ROOM_META['ATR'];
+  const roomCode = 'AT' + floor + String(num).padStart(2, '0');
+
+  const el = mkDiv(
+    'width:' + w + 'px;height:' + h + 'px;font-size:7.5px;' +
+    'background:' + st.bg + ';border-color:' + st.b + ';color:' + st.t + ';' +
+    'border:1.5px solid;border-radius:2px;display:flex;align-items:center;' +
+    'justify-content:center;font-weight:700;font-family:\'Courier New\',monospace;' +
+    'cursor:default;user-select:none;letter-spacing:-.2px;flex-shrink:0;' +
+    'transition:filter .1s,transform .1s;'
+  );
+  el.textContent = roomCode;
+
+  el.onmouseenter = () => {
+    tipEl.innerHTML =
+      '<strong>' + roomCode + '</strong>'                                           +
+      ' &nbsp;·&nbsp; Status:&nbsp;<strong>' + st.lbl + '</strong>'               +
+      ' &nbsp;·&nbsp; <strong>' + meta.name + '</strong>'                          +
+      ' &nbsp;·&nbsp; Floor&nbsp;<strong>' + floor + '</strong>'                   +
+      ' &nbsp;·&nbsp; Room&nbsp;<strong>' + String(num).padStart(2,'0') + '</strong>' +
+      ' &nbsp;·&nbsp; Capacity:&nbsp;<strong>' + meta.cap + '</strong>'            +
+      ' &nbsp;·&nbsp; <em style="opacity:.7">' + meta.pos + '</em>';
+  };
+  el.onmouseleave = () => { tipEl.textContent = 'Hover over any room to see details'; };
+
+  return el;
+}
+
+
+/* ══════════════════════════════════════════════════════════
    STANDARD ROOM CELL
    wingPrefix — display prefix for the room code (e.g. 'A', 'B', 'C')
    seedChar   — single letter used for occ() seed ('A','B','C' etc.)
@@ -327,7 +367,7 @@ function mkRoom(wingPrefix, seedChar, floor, num, metaKey, w, h) {
 
   const status   = occ(floor, seedChar, num);
   const st       = SS[status];
-  const meta     = ROOM_META[metaKey] || { name: 'Wing ' + wingPrefix, type: 'Two-Sitter', pos: '' };
+  const meta     = ROOM_META[metaKey] || { name: 'Wing ' + wingPrefix, cap: 'Double Room', pos: '' };
   /* Room code: [Wing][Floor][RoomNum two-digit] e.g. A101 */
   const roomCode = wingPrefix + floor + String(num).padStart(2, '0');
 
@@ -342,11 +382,11 @@ function mkRoom(wingPrefix, seedChar, floor, num, metaKey, w, h) {
   el.onmouseenter = () => {
     tipEl.innerHTML =
       '<strong>' + roomCode + '</strong>'                                         +
-      ' &nbsp;·&nbsp; ' + st.lbl                                                 +
+      ' &nbsp;·&nbsp; Status:&nbsp;<strong>' + st.lbl + '</strong>'              +
       ' &nbsp;·&nbsp; <strong>' + meta.name + '</strong>'                        +
       ' &nbsp;·&nbsp; Floor&nbsp;<strong>' + floor + '</strong>'                 +
       ' &nbsp;·&nbsp; Room&nbsp;<strong>' + String(num).padStart(2,'0') + '</strong>' +
-      ' &nbsp;·&nbsp; Type:&nbsp;<strong>' + meta.type + '</strong>'             +
+      ' &nbsp;·&nbsp; Capacity:&nbsp;<strong>' + meta.cap + '</strong>'          +
       ' &nbsp;·&nbsp; <em style="opacity:.7">' + meta.pos + '</em>';
   };
   el.onmouseleave = () => { tipEl.textContent = 'Hover over any room to see details'; };
@@ -425,51 +465,48 @@ const WH  = 22;   /* washroom height                       */
 ══════════════════════════════════════════════════════════ */
 
 /* ──────────────────────────────────────────────
-   TOP EDGE ROW  (A-Wing rooms: A[floor]11 – A[floor]16)
-   Uses "A" prefix, numbered 11–16 to avoid conflict
-   with A-Wing main rooms 01–10.
-   Layout: [WR corner] [A11–A16] [WR corner]
-   6 Two-Sitter rooms + washrooms at both ends
+   TOP EDGE ROW  (A-Wing top perimeter: A[floor]06 – A[floor]11)
+   Numbered 06–11: continuation after left rooms A01–A05.
+   Right rooms then continue as A12–A16.
+   Layout: [WR corner] [A06–A11] [WR corner]
+   6 Double Rooms + washrooms at both ends
 ────────────────────────────────────────────── */
 function buildTopRow(floor, bp) {
-  /* Room row */
   const wrap = mkRow('justify-content:center;padding:6px 8px 4px;border-bottom:1px solid var(--court-b);gap:4px;');
   wrap.appendChild(mkWash('WR', 'Top-Left', WH, WH));
 
   const roomsWrap = mkRow('gap:2px;');
-  for (let i = 11; i <= 16; i++) {
-    /* wingPrefix='A', seedChar='A', metaKey='AT' */
+  for (let i = 6; i <= 11; i++) {
     roomsWrap.appendChild(mkRoom('A', 'A', floor, i, 'AT', RW, RH));
   }
   wrap.appendChild(roomsWrap);
   wrap.appendChild(mkWash('WR', 'Top-Right', WH, WH));
   bp.appendChild(wrap);
 
-  /* Sub-label */
   const lbl = mkDiv('text-align:center;font-size:9px;color:var(--muted);padding:2px 0;letter-spacing:.5px;border-bottom:1px solid var(--court-b);');
-  lbl.textContent = 'A-Wing Top Row: 6 rooms [Two-Sitters A' + floor + '11–A' + floor + '16] + Corner Washrooms';
+  lbl.textContent = 'A-Wing Top Row: 6 rooms [A' + floor + '06–A' + floor + '11] + Corner Washrooms';
   bp.appendChild(lbl);
 }
 
 
 /* ──────────────────────────────────────────────
    A-WING
-   Layout: [WING A label] [A01–A05] [OPEN CORRIDOR] [A06–A10] [WING A label]
-   5 Two-Sitters left (01–05) + 5 Two-Sitters right (06–10)
-   Open corridor centre — no large/special rooms
+   Left=A01–A05, Right=A12–A16 (continuation after top row 06–11)
+   Top row=A06–A11 (continuation after left 01–05)
+   Triple Rooms AT[f]01–AT[f]02 inside corridor, bottom-right
 ────────────────────────────────────────────── */
 function buildAWing(floor, bp) {
-  /* Section header bar */
   const hdr = mkDiv(
     'display:flex;align-items:center;gap:8px;' +
     'padding:5px 8px 3px;background:#eef4fd;' +
     'border-bottom:0.5px solid var(--court-b);'
   );
   hdr.appendChild(mkSectionHdr('A-WING', WC.A));
-  hdr.appendChild(mkNote('Rooms A' + floor + '01–A' + floor + '05 (left) + A' + floor + '06–A' + floor + '10 (right)  ·  All Two-Sitters'));
+  hdr.appendChild(mkNote(
+    'Left A' + floor + '01–A' + floor + '05  ·  Right A' + floor + '12–A' + floor + '16  ·  2 Triple Rooms in corridor'
+  ));
   bp.appendChild(hdr);
 
-  /* Body row */
   const body = mkRow('gap:0;align-items:stretch;');
 
   /* Left wing label */
@@ -481,7 +518,7 @@ function buildAWing(floor, bp) {
   leftLblWrap.appendChild(mkSideLbl('A', 'rotate(180deg)'));
   body.appendChild(leftLblWrap);
 
-  /* Left rooms — 01–05 */
+  /* Left rooms — A01–A05 */
   const leftRooms = mkDiv(
     'display:flex;flex-direction:column;gap:2px;padding:6px 4px;' +
     'background:#eef4fd;border:1.5px solid var(--line);' +
@@ -492,29 +529,45 @@ function buildAWing(floor, bp) {
   }
   body.appendChild(leftRooms);
 
-  /* Centre open corridor */
+  /* Centre — open courtyard corridor with triple rooms at bottom-right */
   const corridor = mkDiv(
     'flex:1;display:flex;flex-direction:column;align-items:center;' +
-    'justify-content:center;gap:4px;padding:8px 6px;' +
-    'border:1.5px solid var(--line);min-height:120px;',
+    'justify-content:flex-start;gap:4px;padding:8px 6px 10px;' +
+    'border:1.5px solid var(--line);min-height:150px;position:relative;',
     'courtyard'
   );
   corridor.style.margin = '0';
-  const cLbl = mkDiv('font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--muted);');
+
+  const cLbl = mkDiv('font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--muted);margin-top:4px;');
   cLbl.textContent = 'A-WING CORRIDOR';
   const cSub = mkDiv('font-size:8px;color:var(--muted);opacity:.7;');
   cSub.textContent = '(OPEN CORRIDOR)';
   corridor.appendChild(cLbl);
   corridor.appendChild(cSub);
+
+  /* Triple rooms absolutely positioned at bottom-right of corridor */
+  const tripleWrap = mkDiv(
+    'position:absolute;bottom:8px;right:8px;' +
+    'display:flex;flex-direction:column;align-items:flex-end;gap:4px;'
+  );
+  const tripleRow = mkRow('gap:6px;');
+  tripleRow.appendChild(mkTripleRoom(floor, 1));
+  tripleRow.appendChild(mkTripleRoom(floor, 2));
+  tripleWrap.appendChild(tripleRow);
+  const tNote = mkDiv('font-size:8px;color:var(--triple-b);font-weight:700;opacity:.9;');
+  tNote.textContent = '2 Triple Rooms · 3 beds each';
+  tripleWrap.appendChild(tNote);
+  corridor.appendChild(tripleWrap);
+
   body.appendChild(corridor);
 
-  /* Right rooms — 06–10 */
+  /* Right rooms — A12–A16 (continuation after top row A06–A11) */
   const rightRooms = mkDiv(
     'display:flex;flex-direction:column;gap:2px;padding:6px 4px;' +
     'background:#eef4fd;border:1.5px solid var(--line);' +
     'border-left:none;border-right:none;justify-content:center;'
   );
-  for (let i = 6; i <= 10; i++) {
+  for (let i = 12; i <= 16; i++) {
     rightRooms.appendChild(mkRoom('A', 'A', floor, i, 'A', RW, RH));
   }
   body.appendChild(rightRooms);
@@ -563,7 +616,7 @@ function buildBWing(floor, bp) {
     'border-bottom:0.5px solid var(--court-b);border-top:1px solid var(--court-b);'
   );
   hdr.appendChild(mkSectionHdr('B-WING', WC.B));
-  hdr.appendChild(mkNote('5 One-Sitters each side + 7 Two-Sitters across centre'));
+  hdr.appendChild(mkNote('Left B' + floor + '01–B' + floor + '05  ·  Centre B' + floor + '06–B' + floor + '12  ·  Right B' + floor + '13–B' + floor + '17'));
   bp.appendChild(hdr);
 
   /* Body row */
@@ -589,7 +642,7 @@ function buildBWing(floor, bp) {
   }
   body.appendChild(leftRooms);
 
-  /* Centre — 7 Two-Sitter rooms (B11–B17) */
+  /* Centre — 7 Two-Sitter rooms (B06–B12, continuation after left 01–05) */
   const centre = mkDiv(
     'flex:1;display:flex;flex-direction:column;align-items:center;' +
     'justify-content:center;gap:4px;padding:8px 6px;' +
@@ -600,20 +653,20 @@ function buildBWing(floor, bp) {
   centre.appendChild(cLbl);
 
   const cRooms = mkRow('gap:2px;flex-wrap:wrap;justify-content:center;');
-  for (let i = 11; i <= 17; i++) {
+  for (let i = 6; i <= 12; i++) {
     cRooms.appendChild(mkRoom('B', 'B', floor, i, 'BC', RW, RH));
   }
   centre.appendChild(cRooms);
   centre.appendChild(mkNote('7 Two-Sitter rooms', 'font-size:8px;color:var(--muted);opacity:.8;'));
   body.appendChild(centre);
 
-  /* Right One-Sitter rooms (B06–B10) */
+  /* Right One-Sitter rooms (B13–B17, continuation after centre 06–12) */
   const rightRooms = mkDiv(
     'display:flex;flex-direction:column;gap:2px;padding:6px 4px;' +
     'background:#edf8f4;border:1.5px solid var(--line);' +
     'border-left:none;border-right:none;justify-content:center;'
   );
-  for (let i = 6; i <= 10; i++) {
+  for (let i = 13; i <= 17; i++) {
     rightRooms.appendChild(mkRoom('B', 'B', floor, i, 'B', SRW, SRH));
   }
   body.appendChild(rightRooms);
@@ -660,7 +713,7 @@ function buildCWing(floor, bp) {
     'border-bottom:0.5px solid var(--court-b);border-top:1px solid var(--court-b);'
   );
   hdr.appendChild(mkSectionHdr('C-WING', WC.C));
-  hdr.appendChild(mkNote('Rooms C' + floor + '01–C' + floor + '05 (left) + C' + floor + '06–C' + floor + '10 (right)  ·  All Two-Sitters'));
+  hdr.appendChild(mkNote('Left C' + floor + '01–C' + floor + '05  ·  Bottom row C' + floor + '06–C' + floor + '14  ·  Right C' + floor + '15–C' + floor + '19  ·  All Two-Sitters'));
   bp.appendChild(hdr);
 
   /* Body row */
@@ -702,13 +755,13 @@ function buildCWing(floor, bp) {
   corridor.appendChild(cSub);
   body.appendChild(corridor);
 
-  /* Right rooms — C06–C10 */
+  /* Right rooms — C15–C19 (continuation after bottom row C06–C14) */
   const rightRooms = mkDiv(
     'display:flex;flex-direction:column;gap:2px;padding:6px 4px;' +
     'background:#fdf6ee;border:1.5px solid var(--line);' +
     'border-left:none;border-right:none;justify-content:center;'
   );
-  for (let i = 6; i <= 10; i++) {
+  for (let i = 15; i <= 19; i++) {
     rightRooms.appendChild(mkRoom('C', 'C', floor, i, 'C', RW, RH));
   }
   body.appendChild(rightRooms);
@@ -739,7 +792,7 @@ function buildBottomRow(floor, bp) {
     'text-align:center;font-size:9px;color:var(--muted);' +
     'padding:2px 0;letter-spacing:.5px;border-top:1px solid var(--court-b);'
   );
-  lbl.textContent = 'C-Wing Bottom Row: 9 rooms [One-Sitters C' + floor + '11–C' + floor + '19] + Corner Washrooms';
+  lbl.textContent = 'C-Wing Bottom Row: 9 rooms [C' + floor + '06–C' + floor + '14] + Corner Washrooms';
   bp.appendChild(lbl);
 
   /* Room row */
@@ -748,8 +801,8 @@ function buildBottomRow(floor, bp) {
 
   const roomsWrap = mkRow('gap:2px;');
   for (let i = 1; i <= 9; i++) {
-    /* C11–C19; wingPrefix='C', seedChar='C', metaKey='CR' */
-    roomsWrap.appendChild(mkRoom('C', 'C', floor, 10 + i, 'CR', SRW, RH));
+    /* C06–C14; continuation after left C01–C05 */
+    roomsWrap.appendChild(mkRoom('C', 'C', floor, 5 + i, 'CR', SRW, RH));
   }
   wrap.appendChild(roomsWrap);
   wrap.appendChild(mkWash('WR', 'C2 & Bottom', WH, WH));
@@ -776,19 +829,18 @@ function buildFooter(floor, bp) {
   stats.innerHTML =
     '<strong>Floor ' + floor + ' — ' + wingsLabel + '</strong><br>' +
     'Room Code Format: [Wing][Floor][RoomNo. 2-digit]<br>' +
-    'A-Top row: A' + floor + '11–A' + floor + '16  ·  A-Wing: A' + floor + '01–A' + floor + '10<br>' +
-    'B-Wing: B' + floor + '01–B' + floor + '17<br>' +
-    'C-Wing: C' + floor + '01–C' + floor + '10  ·  C-Bottom: C' + floor + '11–C' + floor + '19<br>' +
+    'A-Wing: Left A' + floor + '01–A' + floor + '05  ·  Top row A' + floor + '06–A' + floor + '11  ·  Right A' + floor + '12–A' + floor + '16  ·  Triple AT' + floor + '01–AT' + floor + '02<br>' +
+    'B-Wing: Left B' + floor + '01–B' + floor + '05  ·  Centre B' + floor + '06–B' + floor + '12  ·  Right B' + floor + '13–B' + floor + '17<br>' +
+    'C-Wing: Left C' + floor + '01–C' + floor + '05  ·  Bottom row C' + floor + '06–C' + floor + '14  ·  Right C' + floor + '15–C' + floor + '19<br>' +
     '<em style="font-size:8px;opacity:.7">e.g. A101 = Wing A · Floor 1 · Room 01</em>';
   footer.appendChild(stats);
 
   const note = mkDiv(null, 'note-box');
   note.innerHTML =
-    '<strong>ROOM TYPES:</strong><br>' +
-    'A-Wing (incl. top row) = Two-Sitter<br>' +
-    'B-Wing sides = One-Sitter · B-Wing centre = Two-Sitter<br>' +
-    'C-Wing = Two-Sitter · C-Wing bottom row = One-Sitter<br>' +
-    'C-Wing = Two-Sitter<br>' +
+    '<strong>ROOM CAPACITY:</strong><br>' +
+    'A-Wing main rooms = Double Room  ·  A-Wing bottom = Triple Room<br>' +
+    'B-Wing sides = Single Room  ·  B-Wing centre = Double Room<br>' +
+    'C-Wing = Double Room  ·  C-Wing bottom row = Single Room<br>' +
     'Washrooms independent per wing section';
   footer.appendChild(note);
 

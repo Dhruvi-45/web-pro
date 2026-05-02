@@ -37,6 +37,12 @@ const predefinedUsers = [
       password: "1234",
       role: "warden",
       hostel: "BH4"
+    },
+    {
+      email: "wardenBH5@lnmiit.ac.in",
+      password: "1234",
+      role: "warden",
+      hostel: "BH5"
     }
   ];
 
