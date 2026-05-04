@@ -22,7 +22,7 @@ const userSchema = new mongoose.Schema({
 
   hostel: {
     type: String,
-    enum: ['GH', 'BH1', 'BH2', 'BH3', 'BH4'],
+    enum: ['GH', 'BH1', 'BH2', 'BH3', 'BH4','BH5'],
     required: function () {
       return this.role !== 'chief_warden';
     }
