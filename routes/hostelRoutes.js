@@ -3,7 +3,7 @@ const router = express.Router();
 const Hostel = require('../models/Hostel');
 
 
-// 📥 GET ALL HOSTELS (for dashboard)
+// GET ALL HOSTELS (for dashboard)
 router.get('/', async (req, res) => {
     try {
         const hostels = await Hostel.find();
@@ -14,7 +14,7 @@ router.get('/', async (req, res) => {
 });
 
 
-// ➕ ADD STUDENT
+// ADD STUDENT
 router.post('/add-student', async (req, res) => {
     try {
         const { hostelName, floorNumber, roomNumber, name, rollNo } = req.body;
@@ -34,12 +34,12 @@ router.post('/add-student', async (req, res) => {
             return res.status(404).json({ message: "Room not found" });
         }
 
-        // 🚫 capacity check
+        // capacity check
         if (room.students.length >= room.maxCapacity) {
             return res.status(400).json({ message: "Room is full" });
         }
 
-        // 🚫 duplicate rollNo check
+        // duplicate rollNo check
         const exists = room.students.find(s => s.rollNo === rollNo);
         if (exists) {
             return res.status(400).json({ message: "Student already exists in room" });
@@ -57,7 +57,7 @@ router.post('/add-student', async (req, res) => {
 });
 
 
-// ➖ REMOVE STUDENT
+//REMOVE STUDENT
 router.post('/remove-student', async (req, res) => {
     try {
         const { hostelName, floorNumber, roomNumber, rollNo } = req.body;
@@ -95,7 +95,7 @@ router.post('/remove-student', async (req, res) => {
 });
 
 
-// 📊 GET SINGLE HOSTEL (useful for filtering)
+// GET SINGLE HOSTEL
 router.get('/:hostelName', async (req, res) => {
     try {
         const hostel = await Hostel.findOne({ hostelName: req.params.hostelName });

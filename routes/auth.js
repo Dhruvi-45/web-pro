@@ -47,17 +47,6 @@ const predefinedUsers = [
   ];
 
 
-router.post('/signup', async (req, res) => {
-  try {
-    const user = new User(req.body);
-    await user.save();
-
-    res.json({ message: "User registered" });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
 
 router.post('/login', async (req, res) => {
     const { email, password } = req.body;
