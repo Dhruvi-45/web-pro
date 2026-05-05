@@ -59,13 +59,15 @@ function getRoomStatus(wing, floor, num) {
   }
 
   const roomCode = wing + '-' + floor + String(num).padStart(2, '0');
-
+  console.log("Looking for:", roomCode);
   const floorData = hostelData.floors.find(f => f.floorNumber == floor);
   if (!floorData) return 'vacant';
-
+  if (floorData) {
+    console.log("Rooms:", floorData.rooms.map(r => r.roomNumber));
+  }
   const room = floorData.rooms.find(r => r.roomNumber === roomCode);
   if (!room) return 'vacant';
-
+  
   const count = room.students.length;
   const max = room.maxCapacity;
 

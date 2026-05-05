@@ -4,8 +4,7 @@ const Hostel = require('../models/Hostel');
 
 router.get('/hostels/:name', async (req, res) => {
     try {
-        const hostel = await Hostel.findOne({ hostelName: req.params.name });
-  
+        const hostel = await Hostel.findOne({ hostelName: req.params.name });  
       if (!hostel) {
         return res.status(404).json({ error: "Hostel not found" });
       }
