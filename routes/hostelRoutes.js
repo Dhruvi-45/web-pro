@@ -2,7 +2,19 @@ const express = require('express');
 const router = express.Router();
 const Hostel = require('../models/Hostel');
 
-
+router.get('/hostels/:name', async (req, res) => {
+    try {
+        const hostel = await Hostel.findOne({ hostelName: req.params.name });
+  
+      if (!hostel) {
+        return res.status(404).json({ error: "Hostel not found" });
+      }
+  
+      res.json(hostel);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
 // GET ALL HOSTELS (for dashboard)
 router.get('/', async (req, res) => {
     try {

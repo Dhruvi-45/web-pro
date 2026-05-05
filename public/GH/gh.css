@@ -187,3 +187,188 @@ body {
 /* ── flex layout helpers ── */
 .row { display: flex; flex-direction: row;    gap: 2px; align-items: center; }
 .col { display: flex; flex-direction: column; gap: 2px; }
+
+
+/* Floating buttons */
+.action-buttons {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  gap: 10px;
+}
+
+.action-buttons button {
+  width: 45px;
+  height: 45px;
+  font-size: 20px;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  background: var(--accent);
+  color: white;
+}
+
+/* Popup */
+.popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.popup-box {
+  background: white;
+  padding: 20px;
+  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 250px;
+}
+
+.hidden {
+  display: none;
+}
+
+.popup-box.advanced {
+  width: 320px;
+  background: var(--paper);
+  border: 2px solid var(--line);
+  border-radius: 6px;
+  padding: 20px;
+  box-shadow: 6px 6px 0 rgba(0,0,0,0.1);
+}
+
+.popup-box h2 {
+  font-size: 14px;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+}
+
+.form-group label {
+  font-size: 10px;
+  margin-bottom: 3px;
+  color: var(--muted);
+}
+
+.form-group input,
+.form-group select {
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  font-family: inherit;
+}
+
+.room-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.room-btn {
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  cursor: pointer;
+  font-size: 10px;
+}
+
+.room-btn.active {
+  background: var(--accent);
+  color: white;
+}
+
+.btn-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.btn-row button {
+  padding: 6px 10px;
+  border: none;
+  background: var(--accent);
+  color: white;
+  cursor: pointer;
+  border-radius: 3px;
+}
+
+.action-buttons {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  gap: 10px;
+}
+
+.action-buttons button {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  font-size: 20px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.hidden { display: none; }
+
+.popup-box.advanced {
+  width: 300px;
+  background: var(--paper);
+  padding: 20px;
+  border: 2px solid var(--line);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 8px;
+}
+
+.room-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.room-btn {
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  cursor: pointer;
+}
+
+.room-btn.active {
+  background: var(--accent);
+  color: white;
+}
+
+.btn-row {
+  display: flex;
+  justify-content: space-between;
+}

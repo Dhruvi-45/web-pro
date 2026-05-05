@@ -1,0 +1,331 @@
+{
+    "hostelName": "GH",
+    "floors": [
+      {
+        "floorNumber": 1,
+        "rooms": [
+          {
+            "roomNumber": "A-101",
+            "wing": "A",
+            "capacity": "double",
+            "maxCapacity": 2,
+            "students": []
+          },
+          {
+            "roomNumber": "A-102",
+            "wing": "A",
+            "capacity": "double",
+            "maxCapacity": 2,
+            "students": [
+              { "name": "Ananya", "rollNo": "23UCS001" }
+            ]
+          },
+          {
+            "roomNumber": "A-103",
+            "wing": "A",
+            "capacity": "double",
+            "maxCapacity": 2,
+            "students": [
+              { "name": "Riya", "rollNo": "24UEC002" },
+              { "name": "Sneha", "rollNo": "25DME003" }
+            ]
+          },
+          {
+            "roomNumber": "A-104",
+            "wing": "A",
+            "capacity": "double",
+            "maxCapacity": 2,
+            "students": [
+              { "name": "Pooja", "rollNo": "24DCS004" },
+              { "name": "Simran", "rollNo": "24UEC005" }
+            ]
+          },
+          {
+            "roomNumber": "A-105",
+            "wing": "A",
+            "capacity": "double",
+            "maxCapacity": 2,
+            "students": []
+          },
+          {
+            "roomNumber": "B-101",
+            "wing": "B",
+            "capacity": "single",
+            "maxCapacity": 1,
+            "students": [
+              { "name": "Nikita", "rollNo": "24UCS007" }
+            ]
+          },
+          {
+            "roomNumber": "B-102",
+            "wing": "B",
+            "capacity": "single",
+            "maxCapacity": 1,
+            "students": [
+              { "name": "Tanya", "rollNo": "23UME009" }
+            ]
+          },
+          {
+            "roomNumber": "B-103",
+            "wing": "B",
+            "capacity": "single",
+            "maxCapacity": 1,
+            "students": [
+              { "name": "Divya", "rollNo": "24DCS010" }
+            ]
+          },
+          {
+            "roomNumber": "B-104",
+            "wing": "B",
+            "capacity": "single",
+            "maxCapacity": 1,
+            "students": []
+          },
+          {
+            "roomNumber": "B-105",
+            "wing": "B",
+            "capacity": "single",
+            "maxCapacity": 1,
+            "students": [
+              { "name": "Khushi", "rollNo": "23UCS013" }
+            ]
+          },
+          {
+            "roomNumber": "C-101",
+            "wing": "C",
+            "capacity": "double",
+            "maxCapacity": 2,
+            "students": [
+              { "name": "Payal", "rollNo": "25DME015" }
+            ]
+          },
+          {
+            "roomNumber": "C-102",
+            "wing": "C",
+            "capacity": "double",
+            "maxCapacity": 2,
+            "students": []
+          },
+          {
+            "roomNumber": "C-103",
+            "wing": "C",
+            "capacity": "double",
+            "maxCapacity": 2,
+            "students": [
+              { "name": "Swati", "rollNo": "23UCS016" },
+              { "name": "Nandini", "rollNo": "24UEC017" }
+            ]
+          },
+          {
+            "roomNumber": "C-104",
+            "wing": "C",
+            "capacity": "double",
+            "maxCapacity": 2,
+            "students": [
+              { "name": "Garima", "rollNo": "25UME018" },
+              { "name": "Tanvi", "rollNo": "23DCS019" }
+            ]
+          },
+          {
+            "roomNumber": "C-105",
+            "wing": "C",
+            "capacity": "double",
+            "maxCapacity": 2,
+            "students": [
+              { "name": "Bhavya", "rollNo": "25UME021" }
+            ]
+          },
+          {
+            "roomNumber": "A-106",
+            "wing": "A",
+            "capacity": "double",
+            "maxCapacity": 2,
+            "students": [
+              { "name": "Komal", "rollNo": "23UCS022" },
+              { "name": "Renu", "rollNo": "24UEC023" }
+            ]
+          },
+          {
+            "roomNumber": "A-107",
+            "wing": "A",
+            "capacity": "double",
+            "maxCapacity": 2,
+            "students": []
+          },
+          {
+            "roomNumber": "B-106",
+            "wing": "B",
+            "capacity": "double",
+            "maxCapacity": 2,
+            "students": [
+              { "name": "Monika", "rollNo": "25UME024" },
+              { "name": "Heena", "rollNo": "23UCS025" }
+            ]
+          },
+          {
+            "roomNumber": "B-107",
+            "wing": "B",
+            "capacity": "double",
+            "maxCapacity": 2,
+            "students": []
+          },
+          {
+            "roomNumber": "C-106",
+            "wing": "C",
+            "capacity": "single",
+            "maxCapacity": 1,
+            "students": [
+              { "name": "Saloni", "rollNo": "24UEC026" }
+            ]
+          },
+          {
+            "roomNumber": "C-107",
+            "wing": "C",
+            "capacity": "single",
+            "maxCapacity": 1,
+            "students": [
+              { "name": "Juhi", "rollNo": "23UCS028" }
+            ]
+          },
+          {
+            "roomNumber": "A-108",
+            "wing": "A",
+            "capacity": "double",
+            "maxCapacity": 2,
+            "students": [
+              { "name": "Preeti", "rollNo": "24UEC029" },
+              { "name": "Radhika", "rollNo": "25UME030" }
+            ]
+          },
+          {
+            "roomNumber": "B-108",
+            "wing": "B",
+            "capacity": "double",
+            "maxCapacity": 2,
+            "students": [
+              { "name": "Sejal", "rollNo": "23UCS031" }
+            ]
+          },
+          {
+            "roomNumber": "C-108",
+            "wing": "C",
+            "capacity": "single",
+            "maxCapacity": 1,
+            "students": []
+          },
+          {
+            "roomNumber": "A-109",
+            "wing": "A",
+            "capacity": "double",
+            "maxCapacity": 2,
+            "students": [
+              { "name": "Yashika", "rollNo": "23UCS034" },
+              { "name": "Trisha", "rollNo": "24UEC035" }
+            ]
+          },
+          {
+            "roomNumber": "B-109",
+            "wing": "B",
+            "capacity": "double",
+            "maxCapacity": 2,
+            "students": [
+              { "name": "Palak", "rollNo": "25UME036" }
+            ]
+          },
+          {
+            "roomNumber": "C-109",
+            "wing": "C",
+            "capacity": "single",
+            "maxCapacity": 1,
+            "students": [
+              { "name": "Rashi", "rollNo": "23DCS037" }
+            ]
+          },
+          {
+            "roomNumber": "A-110",
+            "wing": "A",
+            "capacity": "double",
+            "maxCapacity": 2,
+            "students": [
+              { "name": "Sonia", "rollNo": "25DME039" }
+            ]
+          },
+          {
+            "roomNumber": "B-110",
+            "wing": "B",
+            "capacity": "double",
+            "maxCapacity": 2,
+            "students": [
+              { "name": "Kiran", "rollNo": "23UCS040" },
+              { "name": "Pallavi", "rollNo": "24UEC041" }
+            ]
+          },
+          {
+            "roomNumber": "C-110",
+            "wing": "C",
+            "capacity": "single",
+            "maxCapacity": 1,
+            "students": [
+              { "name": "Lata", "rollNo": "25DME042" }
+            ]
+          },
+          {
+            "roomNumber": "A-111",
+            "wing": "A",
+            "capacity": "double",
+            "maxCapacity": 2,
+            "students": [
+              { "name": "Meena", "rollNo": "23UCS043" }
+            ]
+          },
+          {
+            "roomNumber": "B-111",
+            "wing": "B",
+            "capacity": "double",
+            "maxCapacity": 2,
+            "students": [
+              { "name": "Rekha", "rollNo": "24DEC044" },
+              { "name": "Sunita", "rollNo": "25UME045" }
+            ]
+          },
+          {
+            "roomNumber": "C-111",
+            "wing": "C",
+            "capacity": "single",
+            "maxCapacity": 1,
+            "students": [
+              { "name": "Ankita", "rollNo": "23UCS046" }
+            ]
+          },
+          {
+            "roomNumber": "A-112",
+            "wing": "A",
+            "capacity": "double",
+            "maxCapacity": 2,
+            "students": [
+              { "name": "Pinky", "rollNo": "24UEC047" },
+              { "name": "Jyoti", "rollNo": "25UME048" }
+            ]
+          },
+          {
+            "roomNumber": "B-112",
+            "wing": "B",
+            "capacity": "double",
+            "maxCapacity": 2,
+            "students": [
+              { "name": "Deepa", "rollNo": "23UCS049" }
+            ]
+          },
+          {
+            "roomNumber": "C-112",
+            "wing": "C",
+            "capacity": "single",
+            "maxCapacity": 1,
+            "students": [
+              { "name": "Sarita", "rollNo": "24UEC050" }
+            ]
+          }
+        ]
+      }
+    ]
+  }

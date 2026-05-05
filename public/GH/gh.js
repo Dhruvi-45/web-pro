@@ -1,3 +1,23 @@
+// ===== GLOBAL DATA FROM DB =====
+let hostelData = null;
+let currentFloor = 0;
+
+// ===== FETCH DATA =====
+async function loadHostel() {
+  try {
+    const res = await fetch('http://localhost:3000/api/hostels/GH');
+    hostelData = await res.json();
+
+    console.log("DB DATA:", hostelData);
+
+    // rebuild AFTER data loads
+    build(currentFloor);
+
+  } catch (err) {
+    console.error("Fetch error:", err);
+  }
+}
+
 const WC = {
   A: '#1a4a8a',
   B: '#0d5c40',
@@ -33,22 +53,26 @@ const ROOM_META = {
 const tipEl = document.getElementById('tip');
 
 
-/* ══════════════════════════════════════════════════════════
-   OCCUPANCY SEED FUNCTION
-   Deterministic pseudo-random: same floor+wing+room always
-   returns the same status so the UI is stable across re-renders.
-══════════════════════════════════════════════════════════ */
-function occ(floor, wingChar, num) {
-  const seed = floor * 41 + wingChar.charCodeAt(0) * 23 + num * 13;
-  const h = seed % 100;
-  if (h < 28) return 'vacant';
-  if (h < 52) return 'single';
-  if (h < 72) return 'double';
-  if (h < 86) return 'full';
-  return 'maint';
+function getRoomStatus(wing, floor, num) {
+  if (!hostelData || !hostelData.floors) {
+    return 'vacant'; // fallback if DB missing
+  }
+
+  const roomCode = wing + '-' + floor + String(num).padStart(2, '0');
+
+  const floorData = hostelData.floors.find(f => f.floorNumber == floor);
+  if (!floorData) return 'vacant';
+
+  const room = floorData.rooms.find(r => r.roomNumber === roomCode);
+  if (!room) return 'vacant';
+
+  const count = room.students.length;
+  const max = room.maxCapacity;
+
+  if (count === 0) return 'vacant';
+  if (count === max) return 'full';
+  return 'double';
 }
-
-
 /* ══════════════════════════════════════════════════════════
    DOM FACTORY HELPERS
 ══════════════════════════════════════════════════════════ */
@@ -119,12 +143,11 @@ function mkRoom(wingPrefix, seedChar, floor, num, metaKey, w, h) {
   h = h || 22;
   metaKey = metaKey || wingPrefix;
 
-  const status   = occ(floor, seedChar, num);
+  const status = getRoomStatus(wingPrefix, floor, num);
   const st       = SS[status];
   const meta     = ROOM_META[metaKey] || { name: 'Wing ' + wingPrefix, cap: 'Double Room', pos: '' };
   /* Room code: [Wing][Floor][RoomNum two-digit] e.g. A101 */
-  const roomCode = wingPrefix + floor + String(num).padStart(2, '0');
-
+  const roomCode = wingPrefix + '-' + floor + String(num).padStart(2, '0');
   const el = mkDiv(
     'width:' + w + 'px;height:' + h + 'px;' +
     'background:' + st.bg + ';border-color:' + st.b + ';color:' + st.t + ';',
@@ -700,10 +723,12 @@ for (let i = 0; i < FLOOR_LABELS.length; i++) {
   btn.onclick = () => {
     document.querySelectorAll('.fbtn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
+    currentFloor = i;
     build(i);
   };
   selEl.appendChild(btn);
 }
 
-/* Initial render */
-build(0);
+currentFloor = 0;
+build(0);      // render layout immediately
+loadHostel();  // then load real data

@@ -42,7 +42,70 @@
 <!-- Hover info bar -->
 <div class="tip" id="tip">Hover over any room to see details</div>
 
+<!-- ACTION BUTTONS -->
+<!-- ACTION BUTTONS -->
+<div class="action-buttons">
+  <button id="addBtn">+</button>
+  <button id="removeBtn">−</button>
+</div>
+
+<!-- POPUP -->
+<div id="popupForm" class="popup hidden">
+  <div class="popup-box advanced">
+
+    <h2 id="formTitle">Add Student</h2>
+
+    <!-- Wing -->
+    <div class="form-group">
+      <label>Wing</label>
+      <select id="wingSelect">
+        <option value="">Select</option>
+        <option>A</option>
+        <option>B</option>
+        <option>C</option>
+      </select>
+    </div>
+
+    <!-- Floor -->
+    <div class="form-group">
+      <label>Floor</label>
+      <select id="floorSelect"></select>
+    </div>
+
+    <!-- Rooms -->
+    <div class="form-group">
+      <label>Rooms</label>
+      <div id="roomOptions" class="room-options"></div>
+    </div>
+
+    <!-- Student dropdown (ONLY REMOVE) -->
+    <div class="form-group" id="studentGroup" style="display:none;">
+      <label>Select Student</label>
+      <select id="studentDropdown"></select>
+    </div>
+
+    <!-- Add inputs -->
+    <div id="addInputs">
+      <div class="form-group">
+        <label>Name</label>
+        <input type="text" id="nameInput">
+      </div>
+
+      <div class="form-group">
+        <label>Roll</label>
+        <input type="text" id="rollInput">
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button id="submitBtn">Submit</button>
+      <button id="closeBtn">Cancel</button>
+    </div>
+
+  </div>
+</div>
 
 <script src="gh.js"></script>
+
 </body>
 </html>
