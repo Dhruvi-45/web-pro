@@ -9,6 +9,9 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+const hostelRoutes = require('./routes/hostelRoutes');
+
+app.use('/api/hostels', hostelRoutes);
 // 🔥 DEBUG: check env loading
 console.log("MONGO_URI:", process.env.MONGO_URI ? "Loaded ✅" : "Missing ❌");
 
