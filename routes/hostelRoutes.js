@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const Hostel = require('../models/Hostel');
 
-
 // ================= GET HOSTEL =================
 router.get('/hostels/:hostelName', async (req, res) => {
   try {
@@ -19,12 +18,15 @@ router.get('/hostels/:hostelName', async (req, res) => {
   }
 });
 
-
-// ================= ADD STUDENT (CORRECT ROUTE) =================
+// ================= ADD STUDENT =================
 router.post('/hostels/:hostelName/rooms/:roomCode/students', async (req, res) => {
   try {
     const { hostelName, roomCode } = req.params;
     const { name, rollNo } = req.body;
+
+    if (!name || !rollNo) {
+      return res.status(400).json({ message: "name and rollNo are required" });
+    }
 
     const hostel = await Hostel.findOne({ hostelName });
     if (!hostel) return res.status(404).json({ message: "Hostel not found" });
@@ -33,14 +35,14 @@ router.post('/hostels/:hostelName/rooms/:roomCode/students', async (req, res) =>
       const room = floor.rooms.find(r => r.roomNumber === roomCode);
 
       if (room) {
-        if (room.students.length >= room.maxCapacity) {
-          return res.status(400).json({ message: "Room full" });
+        if ((room.students || []).length >= room.maxCapacity) {
+          return res.status(400).json({ message: "Room is full" });
         }
 
         room.students.push({ name, rollNo });
         await hostel.save();
 
-        return res.json({ message: "Student added", room });
+        return res.json({ message: "Student added successfully", room });
       }
     }
 
@@ -50,7 +52,6 @@ router.post('/hostels/:hostelName/rooms/:roomCode/students', async (req, res) =>
     res.status(500).json({ error: err.message });
   }
 });
-
 
 // ================= REMOVE STUDENT =================
 router.delete('/hostels/:hostelName/rooms/:roomCode/students/:rollNo', async (req, res) => {
@@ -64,16 +65,16 @@ router.delete('/hostels/:hostelName/rooms/:roomCode/students/:rollNo', async (re
       const room = floor.rooms.find(r => r.roomNumber === roomCode);
 
       if (room) {
-        const before = room.students.length;
+        const before = (room.students || []).length;
 
-        room.students = room.students.filter(s => s.rollNo !== rollNo);
+        room.students = (room.students || []).filter(s => s.rollNo !== rollNo);
 
         if (room.students.length === before) {
-          return res.status(404).json({ message: "Student not found" });
+          return res.status(404).json({ message: "Student not found in this room" });
         }
 
         await hostel.save();
-        return res.json({ message: "Student removed", room });
+        return res.json({ message: "Student removed successfully", room });
       }
     }
 
