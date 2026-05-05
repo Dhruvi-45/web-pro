@@ -18,8 +18,6 @@ app.use(bodyParser.json());
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
-app.use('/api/rooms', require('./routes/rooms'));
-app.use('/api/stats', require('./routes/stats'));
 
 // Static frontend
 app.use(express.static(path.join(__dirname, 'public')));
