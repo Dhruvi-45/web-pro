@@ -68,13 +68,15 @@ function getRoomData(wing, floor, num) {
 function getRoomStatus(wing, floor, num) {
   const room = getRoomData(wing, floor, num);
   if (!room) return 'vacant';
-  const count = room.students.length;
-  const max   = room.maxCapacity;
-  if (count === 0)   return 'vacant';
-  if (count >= max)  return 'full';
-  return 'double'; // partially occupied
-}
 
+  const students = room.students || [];   // ✅ FIX
+  const count = students.length;
+  const max   = room.maxCapacity || 1;
+
+  if (count === 0)  return 'vacant';
+  if (count >= max) return 'full';
+  return 'double';
+}
 // ====================================================================
 //  DOM FACTORY HELPERS
 // ====================================================================
@@ -525,43 +527,69 @@ function populateRooms() {
   }
 
   rooms.forEach(room => {
+
+    const students = room.students || [];
+    const max = room.maxCapacity || 2;
+    const isFull = students.length >= max;
+  
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.textContent = room.roomNumber;
+  
+    // 🎯 BASE STYLE
     btn.style.cssText =
       'padding:4px 8px;font-size:11px;border-radius:4px;cursor:pointer;' +
       'border:1.5px solid #aaa;background:#f5f5f5;transition:all .15s;';
-
+  
+    // ❌ IF FULL → DISABLE (NOT REMOVE)
+    if (isFull) {
+      btn.style.background = '#c8687a';   // same as full color
+      btn.style.borderColor = '#8c2a38';
+      btn.style.color = '#fff';
+      btn.style.opacity = '0.6';
+      btn.style.cursor = 'not-allowed';
+      btn.disabled = true;
+    }
+  
     btn.onclick = () => {
+  
+      // 🚫 ignore clicks if full
+      if (isFull) return;
+  
       // Deselect all
       roomOptions.querySelectorAll('button').forEach(b => {
         b.style.background = '#f5f5f5';
         b.style.borderColor = '#aaa';
         b.style.color = '#333';
       });
+  
       // Select this
       btn.style.background = '#1a4a8a';
       btn.style.borderColor = '#1a4a8a';
       btn.style.color = '#fff';
+  
       selectedRoomCode = room.roomNumber;
-
-      // If REMOVE mode — populate student dropdown
+  
+      // REMOVE MODE LOGIC (unchanged)
       if (currentMode === 'remove') {
         studentDrop.innerHTML = '';
+  
         if (!room.students || room.students.length === 0) {
           studentDrop.innerHTML = '<option>No students in this room</option>';
         } else {
           room.students.forEach(s => {
             const opt = document.createElement('option');
             opt.value = s.rollNo || s.roll || s._id;
-            opt.textContent = (s.name || 'Unknown') + ' — ' + (s.rollNo || s.roll || '');
+            opt.textContent =
+              (s.name || 'Unknown') + ' — ' + (s.rollNo || s.roll || '');
             studentDrop.appendChild(opt);
           });
         }
+  
         studentGroup.style.display = '';
       }
     };
-
+  
     roomOptions.appendChild(btn);
   });
 }
