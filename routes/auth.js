@@ -60,7 +60,7 @@ router.post('/login', async (req, res) => {
       return res.json({ success: true, user });
     }
   
-    // 🔹 Optional: check DB users later
+    
     return res.json({ success: false });
   });
 module.exports = router;

@@ -9,31 +9,31 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ✅ Middleware FIRST (before routes)
+// Middleware FIRST (before routes)
 app.use(cors());
 app.use(bodyParser.json());
 
-// ✅ Routes
+// Routes
 const hostelRoutes = require('./routes/hostelRoutes');
 app.use('/api', hostelRoutes);
 app.use('/api/auth', require('./routes/auth'));
 
-// ✅ Static frontend
+//  Static frontend
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ✅ MongoDB Connection
+// MongoDB Connection
 console.log("MONGO_URI:", process.env.MONGO_URI ? "Loaded ✅" : "Missing ❌");
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
-    console.log("MongoDB Connected ✅");
+    console.log("MongoDB Connected");
     console.log(mongoose.connection.name);
   })
   .catch(err => {
     console.log("FULL ERROR:", err);
   });
 
-// ✅ Serve frontend for all other routes
+// Serve frontend for all other routes
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });

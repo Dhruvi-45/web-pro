@@ -13,7 +13,7 @@ async function loadHostel() {
     hostelData = await res.json();
     console.log('DB DATA:', hostelData);
     build(currentFloor);
-    updateInfoPanel(currentFloor); // ← ADD THIS LINE
+    updateInfoPanel(currentFloor); 
   } catch (err) {
     console.error('Fetch error:', err);
   }
