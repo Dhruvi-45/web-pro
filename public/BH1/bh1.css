@@ -1,24 +1,20 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  /* Occupancy colours */
   --vacant:   #d4e9b0; --vacant-b:  #5a8a2a; --vacant-t:  #2e5010;
   --single:   #f5d08a; --single-b:  #c08a10; --single-t:  #5a3a05;
   --double:   #f0b080; --double-b:  #c05a20; --double-t:  #4a1a05;
   --full:     #c8687a; --full-b:    #8c2a38; --full-t:    #ffffff;
   --maint:    #c8c4b8; --maint-b:   #808070; --maint-t:   #383830;
-  /* Special cells */
   --wash:     #a0bcd8; --wash-b:    #3a6898; --wash-t:    #0a2040;
   --stair:    #dedad0; --stair-b:   #a09880;
   --court:    #e8e4d8; --court-b:   #bcbaa8;
-  /* Page */
   --bg:       #f0ece0;
   --paper:    #f8f5ee;
   --line:     #7a7060;
   --text:     #18160e;
   --muted:    #5a5040;
   --accent:   #8c2a38;
-  /* Wing accent colours */
   --wingA:    #1a4a8a;
   --wingB:    #0d5c40;
   --wingC:    #7a3e08;
@@ -35,17 +31,15 @@ body {
   color: var(--text);
   min-height: 100vh;
   padding: 16px 12px 40px;
-  /* blueprint grid texture */
   background-image:
-    repeating-linear-gradient(0deg,   transparent, transparent 27px, rgba(100,90,70,.07) 27px, rgba(100,90,70,.07) 28px),
-    repeating-linear-gradient(90deg,  transparent, transparent 27px, rgba(100,90,70,.04) 27px, rgba(100,90,70,.04) 28px);
+    repeating-linear-gradient(0deg,  transparent, transparent 27px, rgba(100,90,70,.07) 27px, rgba(100,90,70,.07) 28px),
+    repeating-linear-gradient(90deg, transparent, transparent 27px, rgba(100,90,70,.04) 27px, rgba(100,90,70,.04) 28px);
 }
 
-/* ── page header ── */
 .page-header {
   max-width: 1020px; margin: 0 auto 10px;
-  display: flex; align-items: flex-start; justify-content: space-between;
-  flex-wrap: wrap; gap: 8px;
+  display: flex; align-items: flex-start;
+  justify-content: space-between; flex-wrap: wrap; gap: 8px;
 }
 .title-box {
   border: 2px solid var(--line); background: var(--paper);
@@ -54,7 +48,6 @@ body {
 .title-box h1 { font-size: 14px; font-weight: 700; letter-spacing: .3px; color: var(--text); }
 .title-box p  { font-size: 9.5px; color: var(--muted); margin-top: 2px; }
 
-/* ── floor selector ── */
 .floor-sel {
   display: flex; gap: 5px; flex-wrap: wrap;
   margin: 0 auto 10px; max-width: 1020px;
@@ -68,15 +61,14 @@ body {
 .fbtn:hover  { border-color: var(--accent); color: var(--accent); }
 .fbtn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
-/* ── blueprint canvas ── */
 .blueprint {
   max-width: 1020px; margin: 0 auto;
   background: var(--paper); border: 2.5px solid var(--line);
   border-radius: 3px; padding: 10px;
   box-shadow: 4px 4px 0 rgba(0,0,0,.08), 8px 8px 0 rgba(0,0,0,.04);
+  overflow-x: auto;
 }
 
-/* ── hover info bar ── */
 .tip {
   background: var(--paper); border: 1.5px solid var(--line);
   border-radius: 2px; padding: 5px 12px; font-size: 11px;
@@ -88,8 +80,6 @@ body {
 /* ══════════════════════════════════════════════
    CELL STYLES
 ══════════════════════════════════════════════ */
-
-/* ── room block ── */
 .room {
   display: flex; align-items: center; justify-content: center;
   font-size: 7px; font-weight: 700; font-family: 'Courier New', monospace;
@@ -105,7 +95,6 @@ body {
   box-shadow: 0 2px 8px rgba(0,0,0,.22);
 }
 
-/* ── washroom block ── */
 .wash {
   display: flex; align-items: center; justify-content: center;
   flex-direction: column;
@@ -118,9 +107,8 @@ body {
     rgba(58,104,152,.15) 3px, rgba(58,104,152,.15) 6px
   );
 }
-.wash svg { display: block; margin: 1px auto 0; opacity: .7; }
+.wash svg { display: block; margin: 1px auto 0; opacity: .75; }
 
-/* ── staircase block ── */
 .stair {
   display: flex; align-items: center; justify-content: center;
   font-size: 5.5px; font-weight: 700; font-family: 'Courier New', monospace;
@@ -131,46 +119,6 @@ body {
     0deg, transparent, transparent 3px,
     rgba(0,0,0,.06) 3px, rgba(0,0,0,.06) 4px
   );
-}
-
-/* ── central courtyard ── */
-.courtyard {
-  background: var(--court); border: 2px solid var(--court-b);
-  border-radius: 5px;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 3px;
-  background-image:
-    radial-gradient(ellipse at center, rgba(160,200,140,.12) 0%, transparent 65%),
-    repeating-linear-gradient(0deg,  transparent, transparent 9px, rgba(0,0,0,.025) 9px, rgba(0,0,0,.025) 10px),
-    repeating-linear-gradient(90deg, transparent, transparent 9px, rgba(0,0,0,.025) 9px, rgba(0,0,0,.025) 10px);
-}
-.ct-title { font-size: 12px; font-weight: 700; color: var(--muted); letter-spacing: 1.5px; text-align: center; }
-.ct-sub   { font-size: 8.5px; color: var(--muted); opacity: .65; letter-spacing: .8px; }
-
-/* ── wing labels ── */
-.wing-side-lbl {
-  writing-mode: vertical-rl; text-orientation: mixed;
-  font-size: 11px; font-weight: 700; letter-spacing: 2px;
-  color: #fff; padding: 6px 4px;
-  display: flex; align-items: center; justify-content: center;
-  border-radius: 1px;
-}
-.wing-hdr-lbl {
-  font-size: 11px; font-weight: 700; letter-spacing: 2px;
-  color: #fff; padding: 2px 14px; border-radius: 1px;
-  text-align: center; display: inline-block;
-}
-
-/* ── info boxes ── */
-.stats-box {
-  border: 1.5px solid var(--line); padding: 8px 20px;
-  background: var(--court); font-size: 9px; line-height: 1.9;
-  text-align: center; border-radius: 2px;
-}
-.note-box {
-  border: 1.5px solid var(--line); padding: 8px 14px;
-  background: var(--paper); font-size: 9px; line-height: 1.9;
-  border-radius: 2px;
 }
 
 /* ══════════════════════════════════════════════
@@ -184,8 +132,98 @@ body {
   max-width: 1020px; margin: 0 auto 10px; letter-spacing: .3px;
 }
 .li { display: flex; align-items: center; gap: 4px; }
-.lb { width: 14px; height: 10px; border-radius: 1px; border: 1px solid; }
+.lb { width: 14px; height: 10px; border-radius: 1px; border: 1px solid; flex-shrink: 0; }
+
+/* ══════════════════════════════════════════════
+   WING LABEL
+══════════════════════════════════════════════ */
+.wing-hdr-lbl {
+  font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
+  padding: 4px 10px; border-radius: 1px;
+  display: inline-block; color: #fff;
+}
+
+/* ══════════════════════════════════════════════
+   INFO BOXES
+══════════════════════════════════════════════ */
+.stats-box {
+  border: 1.5px solid var(--line); padding: 8px 20px;
+  background: var(--court); font-size: 9px; line-height: 1.9;
+  text-align: center; border-radius: 2px; flex: 1;
+}
+.note-box {
+  border: 1.5px solid var(--line); padding: 8px 14px;
+  background: var(--paper); font-size: 9px; line-height: 1.9;
+  border-radius: 2px; flex: 1;
+}
 
 /* ── flex layout helpers ── */
-.row { display: flex; flex-direction: row;    gap: 2px; align-items: center; }
+.row { display: flex; flex-direction: row; gap: 2px; align-items: stretch; }
 .col { display: flex; flex-direction: column; gap: 2px; }
+
+/* ══════════════════════════════════════════════
+   ACTION BUTTONS
+══════════════════════════════════════════════ */
+.action-buttons {
+  position: fixed; bottom: 20px; right: 20px;
+  display: flex; gap: 10px;
+}
+.action-buttons button {
+  width: 45px; height: 45px; font-size: 20px;
+  border: none; border-radius: 50%; cursor: pointer;
+  background: var(--accent); color: white;
+}
+
+/* ══════════════════════════════════════════════
+   POPUP
+══════════════════════════════════════════════ */
+.hidden { display: none !important; }
+
+.popup {
+  position: fixed; top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.4);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 1000;
+}
+
+.popup-box.advanced {
+  width: 320px; background: var(--paper);
+  border: 2px solid var(--line); border-radius: 6px;
+  padding: 20px;
+  box-shadow: 6px 6px 0 rgba(0,0,0,0.1);
+}
+
+.popup-box h2 {
+  font-size: 14px; margin-bottom: 10px; text-align: center;
+}
+
+.form-group {
+  display: flex; flex-direction: column; margin-bottom: 10px;
+}
+.form-group label {
+  font-size: 10px; margin-bottom: 3px; color: var(--muted);
+}
+.form-group input,
+.form-group select {
+  padding: 6px; border: 1px solid var(--line);
+  border-radius: 3px; font-family: inherit;
+}
+
+.room-options { display: flex; flex-wrap: wrap; gap: 5px; }
+
+.room-btn {
+  padding: 4px 8px; border: 1px solid var(--line);
+  background: var(--paper); cursor: pointer; font-size: 10px;
+  border-radius: 3px; font-family: inherit;
+}
+.room-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+.btn-row {
+  display: flex; justify-content: space-between; margin-top: 10px;
+}
+.btn-row button {
+  padding: 6px 10px; border: none;
+  background: var(--accent); color: white;
+  cursor: pointer; border-radius: 3px; font-family: inherit;
+}
