@@ -6,8 +6,8 @@ const StudentSchema = new mongoose.Schema({
 });
 
 const RoomSchema = new mongoose.Schema({
-    roomNumber: String, // A-101
-    wing: String,       // A, B, C
+    roomNumber: String,
+    wing: String,       
     capacity: {
         type: String,
         enum: ['single', 'double', 'triple']
