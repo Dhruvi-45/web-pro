@@ -3,36 +3,129 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Boys Hostel — BH-3</title>
+<title>Boys Hostel — Floor Plan BH3</title>
 <link rel="stylesheet" href="bh3.css">
 </head>
 <body>
 
-<!-- HEADER -->
+<!-- ── PAGE HEADER ── -->
 <div class="page-header">
   <div class="title-box">
-    <h1>Boys Hostel &#8212; BH-3</h1>
-    <p id="floorSub">Floor 0 (Ground Floor) &mdash; Both towers active</p>
+    <h1>Boys Hostel &nbsp;<span style="color:var(--accent);letter-spacing:1px;">BH-3</span></h1>
+    <p id="floorSub">Floor 1 — Tower A: A-101–A-120 · Tower B: B-101–B-120</p>
   </div>
 </div>
 
-<!-- FLOOR SELECTOR -->
+<!-- ── FLOOR SELECTOR ── -->
 <div class="floor-sel" id="floorSel"></div>
 
-<!-- LEGEND (no "LEGEND:" label) -->
+<!-- ── LEGEND ── -->
 <div class="legend">
   <div class="li"><div class="lb" style="background:var(--vacant);border-color:var(--vacant-b)"></div>Vacant</div>
-  <div class="li"><div class="lb" style="background:var(--single);border-color:var(--single-b)"></div>Partial Occupied</div>
-  <div class="li"><div class="lb" style="background:var(--double);border-color:var(--double-b)"></div>Fully Occupied</div>
-  <div class="li"><div class="lb" style="background:var(--wash);border-color:var(--wash-b);background-image:repeating-linear-gradient(45deg,transparent,transparent 3px,rgba(58,104,152,.25) 3px,rgba(58,104,152,.25) 6px)"></div>Washroom</div>
+  <div class="li"><div class="lb" style="background:var(--single);border-color:var(--single-b)"></div>Partially Occupied</div>
+  <div class="li"><div class="lb" style="background:var(--full);border-color:var(--full-b)"></div>Fully Occupied</div>
+  <div class="li">
+    <div class="lb" style="background:var(--wash);border-color:var(--wash-b);
+      background-image:repeating-linear-gradient(45deg,transparent,transparent 3px,rgba(58,104,152,.25) 3px,rgba(58,104,152,.25) 6px);">
+    </div>Washroom
+  </div>
   <div class="li"><div class="lb" style="background:var(--court);border-color:var(--court-b)"></div>Courtyard</div>
 </div>
 
-<!-- BLUEPRINT -->
+<!-- ── BLUEPRINT ── -->
 <div class="blueprint" id="bp"></div>
 
-<!-- TOOLTIP -->
+
+<!-- ── INFOGRAPHICS PANEL ── -->
+<div class="infographics-panel" id="infoPanel">
+  <div class="info-cards-row">
+    <div class="info-card"><div class="info-num" id="statTotalNum">—</div><div class="info-lbl">Total Rooms</div></div>
+    <div class="info-card"><div class="info-num" id="statOccupiedNum">—</div><div class="info-lbl">Occupied</div></div>
+    <div class="info-card"><div class="info-num" id="statVacantNum">—</div><div class="info-lbl">Vacant</div></div>
+    <div class="info-card"><div class="info-num" id="statPartialNum">—</div><div class="info-lbl">Partial</div></div>
+    <div class="info-card"><div class="info-num" id="statOccRateNum">—</div><div class="info-lbl">Occupancy Rate</div></div>
+  </div>
+  <div class="charts-row">
+    <div class="chart-box">
+      <div class="chart-title">Room Status — Floor <span id="pieFloorLbl">1</span></div>
+      <div class="pie-wrap">
+        <canvas id="pieCanvas" width="130" height="130"></canvas>
+        <div class="pie-legend" id="pieLegend"></div>
+      </div>
+    </div>
+    <div class="chart-box">
+      <div class="chart-title">Tower-wise Students — Floor <span id="barFloorLbl">1</span></div>
+      <div class="wing-bar-chart" id="wingBarChart"></div>
+    </div>
+    <div class="chart-box">
+      <div class="chart-title">Floor-wise Occupancy %</div>
+      <div class="floor-chart" id="floorChart"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── TOOLTIP BAR ── -->
 <div class="tip" id="tip">Hover over any room to see details</div>
+
+<!-- ── ACTION BUTTONS ── -->
+<div class="action-buttons">
+  <button id="addBtn">+</button>
+  <button id="removeBtn">−</button>
+</div>
+
+<!-- ── POPUP ── -->
+<div id="popupForm" class="popup hidden">
+  <div class="popup-box advanced">
+
+    <h2 id="formTitle">Add Student</h2>
+
+    <!-- Tower -->
+    <div class="form-group">
+      <label>Tower</label>
+      <select id="towerSelect">
+        <option value="">Select</option>
+        <option value="A">Tower A</option>
+        <option value="B">Tower B</option>
+      </select>
+    </div>
+
+    <!-- Floor -->
+    <div class="form-group">
+      <label>Floor</label>
+      <select id="floorSelect"></select>
+    </div>
+
+    <!-- Rooms -->
+    <div class="form-group">
+      <label>Rooms</label>
+      <div id="roomOptions" class="room-options"></div>
+    </div>
+
+    <!-- Student dropdown (REMOVE mode only) -->
+    <div class="form-group" id="studentGroup" style="display:none;">
+      <label>Select Student</label>
+      <select id="studentDropdown"></select>
+    </div>
+
+    <!-- Add inputs -->
+    <div id="addInputs">
+      <div class="form-group">
+        <label>Name</label>
+        <input type="text" id="nameInput">
+      </div>
+      <div class="form-group">
+        <label>Roll</label>
+        <input type="text" id="rollInput">
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button id="submitBtn">Submit</button>
+      <button id="closeBtn">Cancel</button>
+    </div>
+
+  </div>
+</div>
 
 <script src="bh3.js"></script>
 </body>

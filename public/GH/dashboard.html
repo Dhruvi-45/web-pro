@@ -36,8 +36,68 @@
   </div>
 </div>
 
+
+<!-- INFOGRAPHICS PANEL -->
+<!-- INFOGRAPHICS PANEL -->
+
 <!-- Blueprint canvas -->
 <div class="blueprint" id="bp"></div>
+
+
+<div class="infographics-panel" id="infoPanel">
+
+  <!-- Stat Cards Row -->
+  <div class="info-cards-row">
+    <div class="info-card">
+      <div class="info-num" id="statTotalNum">—</div>
+      <div class="info-lbl">Total Students</div>
+    </div>
+    <div class="info-card">
+      <div class="info-num" id="statOccupiedNum">—</div>
+      <div class="info-lbl">Occupied Rooms</div>
+    </div>
+    <div class="info-card">
+      <div class="info-num" id="statVacantNum">—</div>
+      <div class="info-lbl">Vacant Rooms</div>
+    </div>
+    <div class="info-card">
+      <div class="info-num" id="statFullNum">—</div>
+      <div class="info-lbl">Fully Occupied</div>
+    </div>
+    <div class="info-card">
+      <div class="info-num" id="statOccRateNum">—</div>
+      <div class="info-lbl">Occupancy Rate</div>
+    </div>
+  </div>
+
+  <!-- Charts Row -->
+  <!-- Charts Row -->
+  <div class="charts-row">
+
+    <!-- Pie Chart — LEFT -->
+    <div class="chart-box">
+      <div class="chart-title">Room Status — Floor <span id="pieFloorLbl">0</span></div>
+      <div class="pie-wrap">
+        <canvas id="pieCanvas" width="130" height="130"></canvas>
+        <div class="pie-legend" id="pieLegend"></div>
+      </div>
+    </div>
+
+    <!-- Wing-wise Bar Chart — RIGHT -->
+    <div class="chart-box">
+      <div class="chart-title">Wing-wise Students (Floor <span id="barFloorLbl">0</span>)</div>
+      <div class="wing-bar-chart" id="wingBarChart"></div>
+    </div>
+
+    <!-- Floor comparison bar — FAR RIGHT -->
+    <div class="chart-box">
+      <div class="chart-title">Floor-wise Occupancy %</div>
+      <div class="floor-chart" id="floorChart"></div>
+    </div>
+
+  </div>
+</div>
+
 
 <!-- Hover info bar -->
 <div class="tip" id="tip">Hover over any room to see details</div>

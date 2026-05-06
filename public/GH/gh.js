@@ -13,9 +13,166 @@ async function loadHostel() {
     hostelData = await res.json();
     console.log('DB DATA:', hostelData);
     build(currentFloor);
+    updateInfoPanel(currentFloor); // ← ADD THIS LINE
   } catch (err) {
     console.error('Fetch error:', err);
   }
+}
+
+
+// ====================================================================
+//  INFOGRAPHICS — compute stats from hostelData & update panel
+// ====================================================================
+function updateInfoPanel(floor) {
+  if (!hostelData || !hostelData.floors) return;
+
+  const floorData = hostelData.floors.find(f => f.floorNumber == floor);
+  if (!floorData) return;
+
+  // ── floor label update ──
+  document.getElementById('barFloorLbl').textContent = floor;
+  document.getElementById('pieFloorLbl').textContent = floor;
+
+  let totalStudents = 0, occupiedRooms = 0, vacantRooms = 0, fullRooms = 0, totalRooms = 0;
+  const wingStudents = { A: 0, B: 0, C: 0 };
+
+  floorData.rooms.forEach(room => {
+    const students = room.students || [];
+    const max      = room.maxCapacity || 1;
+    totalStudents += students.length;
+    totalRooms++;
+
+    if (students.length === 0)  vacantRooms++;
+    else                        occupiedRooms++;
+    if (students.length >= max) fullRooms++;
+
+    const wing = room.roomNumber.charAt(0);
+    if (wingStudents[wing] !== undefined) wingStudents[wing] += students.length;
+  });
+
+  const occRate = totalRooms > 0 ? Math.round((occupiedRooms / totalRooms) * 100) : 0;
+
+  // ── stat cards ──
+  document.getElementById('statTotalNum').textContent    = totalStudents;
+  document.getElementById('statOccupiedNum').textContent = occupiedRooms;
+  document.getElementById('statVacantNum').textContent   = vacantRooms;
+  document.getElementById('statFullNum').textContent     = fullRooms;
+  document.getElementById('statOccRateNum').textContent  = occRate + '%';
+
+  // ── Wing-wise Bar Chart ──
+  const wingBarEl = document.getElementById('wingBarChart');
+  wingBarEl.innerHTML = '';
+  const wingColors = { A: '#1a4a8a', B: '#0d5c40', C: '#7a3e08' };
+  const maxWing = Math.max(...Object.values(wingStudents), 1);
+
+  Object.entries(wingStudents).forEach(([wing, count]) => {
+    const wrap = document.createElement('div'); wrap.className = 'wb-bar-wrap';
+
+    const val = document.createElement('div'); val.className = 'wb-val';
+    val.textContent = count;
+    val.style.color = wingColors[wing];
+
+    const bar = document.createElement('div'); bar.className = 'wb-bar';
+    bar.style.height = Math.round((count / maxWing) * 80) + 'px';
+    bar.style.background = wingColors[wing];
+    bar.style.opacity = count === 0 ? '.2' : '1';
+
+    const lbl = document.createElement('div'); lbl.className = 'wb-lbl';
+    lbl.textContent = 'Wing ' + wing;
+
+    wrap.appendChild(val); wrap.appendChild(bar); wrap.appendChild(lbl);
+    wingBarEl.appendChild(wrap);
+  });
+
+  // ── Pie Chart ──
+  const partialRooms = occupiedRooms - fullRooms;
+  const pieData = [
+    { label: 'Vacant',    value: vacantRooms,  color: '#5a8a2a' },
+    { label: 'Partial',   value: partialRooms, color: '#c05a20' },
+    { label: 'Full',      value: fullRooms,    color: '#8c2a38' },
+  ].filter(d => d.value > 0);
+
+  const canvas = document.getElementById('pieCanvas');
+  const ctx    = canvas.getContext('2d');
+  const cx = canvas.width / 2, cy = canvas.height / 2, r = 55;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const total = pieData.reduce((s, d) => s + d.value, 0) || 1;
+  let startAngle = -Math.PI / 2;
+
+  pieData.forEach(d => {
+    const slice = (d.value / total) * 2 * Math.PI;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, startAngle, startAngle + slice);
+    ctx.closePath();
+    ctx.fillStyle = d.color;
+    ctx.fill();
+    ctx.strokeStyle = '#f8f5ee';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    startAngle += slice;
+  });
+
+  // donut hole
+  ctx.beginPath();
+  ctx.arc(cx, cy, 28, 0, 2 * Math.PI);
+  ctx.fillStyle = '#f8f5ee';
+  ctx.fill();
+
+  // center text
+  ctx.fillStyle = '#8c2a38';
+  ctx.font = 'bold 13px Courier New';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(occRate + '%', cx, cy);
+
+  // legend
+  const legendEl = document.getElementById('pieLegend');
+  legendEl.innerHTML = '';
+  pieData.forEach(d => {
+    const item = document.createElement('div'); item.className = 'pl-item';
+    item.innerHTML =
+      '<div class="pl-dot" style="background:' + d.color + '"></div>' +
+      d.label + '<span class="pl-val">' + d.value + '</span>';
+    legendEl.appendChild(item);
+  });
+
+  // ── Floor Bar Chart ──
+  const chartEl = document.getElementById('floorChart');
+  const allFloorStats = hostelData.floors.map(fd => {
+    let occ = 0, tot = 0;
+    fd.rooms.forEach(r => { tot++; if ((r.students||[]).length > 0) occ++; });
+    return { floor: fd.floorNumber, pct: tot > 0 ? Math.round((occ/tot)*100) : 0 };
+  });
+
+  const maxPct = Math.max(...allFloorStats.map(f => f.pct), 1);
+  chartEl.innerHTML = '';
+
+  allFloorStats.forEach(f => {
+    const isActive = f.floor == floor;
+    const wrap = document.createElement('div'); wrap.className = 'fc-bar-wrap';
+
+    const valLbl = document.createElement('div'); valLbl.className = 'fc-bar-val';
+    valLbl.textContent = f.pct + '%';
+    valLbl.style.opacity = isActive ? '1' : '.4';
+
+    const bar = document.createElement('div'); bar.className = 'fc-bar';
+    bar.style.height = Math.round((f.pct / maxPct) * 70) + 'px';
+    bar.style.background  = isActive
+      ? (f.pct > 80 ? 'var(--full)' : f.pct > 50 ? 'var(--partial)' : 'var(--vacant-b)')
+      : 'var(--maint)';
+    bar.style.borderColor = bar.style.background;
+    bar.style.opacity = isActive ? '1' : '.35';
+
+    const lbl = document.createElement('div'); lbl.className = 'fc-bar-lbl';
+    lbl.textContent = 'F' + f.floor;
+    lbl.style.fontWeight = isActive ? '700' : '400';
+    lbl.style.color = isActive ? 'var(--accent)' : 'var(--muted)';
+
+    wrap.appendChild(valLbl); wrap.appendChild(bar); wrap.appendChild(lbl);
+    chartEl.appendChild(wrap);
+  });
 }
 
 // ===== WING COLORS =====
@@ -467,6 +624,7 @@ for (let i = 0; i < FLOOR_LABELS.length; i++) {
     btn.classList.add('active');
     currentFloor = i;
     build(i);
+    updateInfoPanel(i);
   };
   selEl.appendChild(btn);
 }

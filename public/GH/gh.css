@@ -372,3 +372,88 @@ body {
   display: flex;
   justify-content: space-between;
 }
+
+/* ══════════════════════════════════════════════
+   INFOGRAPHICS PANEL
+══════════════════════════════════════════════ */
+.infographics-panel {
+  max-width: 1020px; margin: 10px auto 0;
+  display: flex; flex-direction: column; gap: 8px;
+}
+
+.info-cards-row {
+  display: flex; gap: 8px; flex-wrap: wrap;
+}
+.info-card {
+  border: 1.5px solid var(--line); background: var(--paper);
+  border-radius: 2px; padding: 10px 16px;
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; flex: 1; min-width: 90px;
+  box-shadow: 2px 2px 0 rgba(0,0,0,.06);
+}
+.info-num {
+  font-size: 22px; font-weight: 700; color: var(--accent);
+  letter-spacing: -1px; line-height: 1;
+}
+.info-lbl {
+  font-size: 8px; color: var(--muted); margin-top: 4px;
+  letter-spacing: .5px; text-align: center; text-transform: uppercase;
+}
+
+.charts-row {
+  display: flex; gap: 8px; flex-wrap: wrap; align-items: stretch;
+}
+.chart-box {
+  border: 1.5px solid var(--line); background: var(--paper);
+  border-radius: 2px; padding: 10px 12px; flex: 1; min-width: 200px;
+  box-shadow: 2px 2px 0 rgba(0,0,0,.06);
+}
+.chart-title {
+  font-size: 9px; font-weight: 700; color: var(--muted);
+  letter-spacing: .6px; text-transform: uppercase; margin-bottom: 8px;
+}
+
+/* ── Pie Chart ── */
+.pie-wrap {
+  display: flex; align-items: center; gap: 14px;
+}
+.pie-legend {
+  display: flex; flex-direction: column; gap: 5px; font-size: 9px;
+}
+.pl-item {
+  display: flex; align-items: center; gap: 5px; color: var(--muted);
+}
+.pl-dot {
+  width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0;
+}
+.pl-val { font-weight: 700; color: var(--text); margin-left: 2px; }
+
+/* ── Wing Bar Chart ── */
+.wing-bar-chart {
+  display: flex; align-items: flex-end; gap: 14px;
+  height: 100px; padding: 0 4px;
+}
+.wb-bar-wrap {
+  display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1;
+}
+.wb-bar {
+  width: 100%; border-radius: 2px 2px 0 0; min-height: 3px;
+  transition: height .4s ease;
+  border-top: 2px solid rgba(0,0,0,.15);
+}
+.wb-val { font-size: 9px; font-weight: 700; }
+.wb-lbl { font-size: 8px; color: var(--muted); letter-spacing: .5px; }
+
+/* ── Floor Bar Chart ── */
+.floor-chart {
+  display: flex; align-items: flex-end; gap: 5px; height: 80px;
+}
+.fc-bar-wrap {
+  display: flex; flex-direction: column; align-items: center; gap: 2px; flex: 1;
+}
+.fc-bar {
+  width: 100%; border-radius: 1px 1px 0 0; min-height: 2px;
+  transition: height .4s ease; border: 1px solid;
+}
+.fc-bar-lbl { font-size: 7px; color: var(--muted); text-align: center; }
+.fc-bar-val { font-size: 7px; font-weight: 700; color: var(--accent); text-align: center; }

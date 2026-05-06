@@ -18,6 +18,35 @@
   <div class="wings" id="wings"></div>
   <div class="footer-note" id="footerNote"></div>
 </div>
+
+
+
+<!-- INFOGRAPHICS PANEL -->
+<div class="infographics-panel" id="infoPanel">
+  <div class="info-cards-row">
+    <div class="info-card"><div class="info-num" id="statTotalNum">—</div><div class="info-lbl">Total Rooms</div></div>
+    <div class="info-card"><div class="info-num" id="statOccupiedNum">—</div><div class="info-lbl">Occupied</div></div>
+    <div class="info-card"><div class="info-num" id="statVacantNum">—</div><div class="info-lbl">Vacant</div></div>
+    <div class="info-card"><div class="info-num" id="statPartialNum">—</div><div class="info-lbl">Partial</div></div>
+    <div class="info-card"><div class="info-num" id="statOccRateNum">—</div><div class="info-lbl">Occupancy Rate</div></div>
+  </div>
+  <div class="charts-row">
+    <div class="chart-box">
+      <div class="chart-title">Room Status — BH5</div>
+      <div class="pie-wrap">
+        <canvas id="pieCanvas" width="130" height="130"></canvas>
+        <div class="pie-legend" id="pieLegend"></div>
+      </div>
+    </div>
+    <div class="chart-box">
+      <div class="chart-title">Wing-wise Students</div>
+      <div class="wing-bar-chart" id="wingBarChart"></div>
+    </div>
+  </div>
+</div>
+
+<div class="tip" id="tip"><span style="color:#9a9080">Hover over any room to see details</span></div>
+
 <div class="tip" id="tip"><span style="color:#9a9080">Hover over any room to see details</span></div>
 <script src="bh5.js"></script>
 </body>

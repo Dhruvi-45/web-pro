@@ -22,3 +22,23 @@ body{font-family:'Courier New',monospace;background:#f0ece0;background-image:rep
 .tip{background:#f8f5ee;border:1.5px solid #7a7060;border-radius:3px;padding:6px 12px;font-size:11px;color:#5a5040;margin-top:8px;min-height:30px;display:flex;align-items:center;gap:4px;font-family:'Courier New',monospace}
 .tip strong{color:#18160e}
 .dot{color:#bcbaa8;margin:0 5px}
+
+/* INFOGRAPHICS */
+.infographics-panel{max-width:100%;margin:10px 0 0;display:flex;flex-direction:column;gap:8px}
+.info-cards-row{display:flex;gap:8px;flex-wrap:wrap}
+.info-card{border:1.5px solid #7a7060;background:#f8f5ee;border-radius:2px;padding:10px 16px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;min-width:90px;box-shadow:2px 2px 0 rgba(0,0,0,.06)}
+.info-num{font-size:22px;font-weight:700;color:#1a4a8a;letter-spacing:-1px;line-height:1;font-family:'Courier New',monospace}
+.info-lbl{font-size:8px;color:#5a5040;margin-top:4px;letter-spacing:.5px;text-align:center;text-transform:uppercase;font-family:'Courier New',monospace}
+.charts-row{display:flex;gap:8px;flex-wrap:wrap;align-items:stretch}
+.chart-box{border:1.5px solid #7a7060;background:#f8f5ee;border-radius:2px;padding:10px 12px;flex:1;min-width:200px;box-shadow:2px 2px 0 rgba(0,0,0,.06)}
+.chart-title{font-size:9px;font-weight:700;color:#5a5040;letter-spacing:.6px;text-transform:uppercase;margin-bottom:8px;font-family:'Courier New',monospace}
+.pie-wrap{display:flex;align-items:center;gap:14px}
+.pie-legend{display:flex;flex-direction:column;gap:5px;font-size:9px;font-family:'Courier New',monospace}
+.pl-item{display:flex;align-items:center;gap:5px;color:#5a5040}
+.pl-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.pl-val{font-weight:700;color:#18160e;margin-left:2px}
+.wing-bar-chart{display:flex;align-items:flex-end;gap:14px;height:100px;padding:0 4px}
+.wb-bar-wrap{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1}
+.wb-bar{width:100%;border-radius:2px 2px 0 0;min-height:3px;transition:height .4s ease;border-top:2px solid rgba(0,0,0,.15)}
+.wb-val{font-size:9px;font-weight:700;font-family:'Courier New',monospace}
+.wb-lbl{font-size:8px;color:#5a5040;letter-spacing:.5px;font-family:'Courier New',monospace}

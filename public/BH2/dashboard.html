@@ -1,49 +1,103 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Boys Hostel — Floor Plan</title>
+<title>Boys Hostel BH-2 — Floor Plan</title>
 <link rel="stylesheet" href="bh2.css">
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════
-     PAGE HEADER
-═══════════════════════════════════════ -->
 <div class="page-header">
   <div class="title-box">
-    <h1>Boys Hostel — Typical Floor Plan</h1>
-    <p id="floorSub">Floor 0 (Ground Floor) Shown as Example</p>
+    <h1>Boys Hostel &nbsp;<span style="color:var(--accent);letter-spacing:1px;">BH-2</span></h1>
+    <p id="floorSub">Floor 1 — Wings A · B · C · D · E</p>
   </div>
 </div>
 
-<!-- Floor selector buttons (injected by JS) -->
 <div class="floor-sel" id="floorSel"></div>
 
-<!-- Legend -->
 <div class="legend">
-  <strong>LEGEND (ROOM OCCUPANCY):</strong>
-  <div class="li"><div class="lb" style="background:var(--vacant); border-color:var(--vacant-b)"></div>Vacant</div>
-  <div class="li"><div class="lb" style="background:var(--single); border-color:var(--single-b)"></div>Single Occupied</div>
-  <div class="li"><div class="lb" style="background:var(--double); border-color:var(--double-b)"></div>Double Occupied</div>
-  <div class="li"><div class="lb" style="background:var(--full);   border-color:var(--full-b)"  ></div>Full (Triple)</div>
-  <div class="li"><div class="lb" style="background:var(--maint);  border-color:var(--maint-b)" ></div>Maintenance / Blocked</div>
+  <strong>COLOR CODING:</strong>
+  <div class="li"><div class="lb" style="background:var(--vacant);border-color:var(--vacant-b)"></div>Vacant</div>
+  <div class="li"><div class="lb" style="background:var(--single);border-color:var(--single-b)"></div>Partially Occupied</div>
+  <div class="li"><div class="lb" style="background:var(--full);border-color:var(--full-b)"></div>Fully Occupied</div>
+  <div class="li"><div class="lb" style="background:var(--maint);border-color:var(--maint-b)"></div>Maintenance</div>
   <div class="li">
     <div class="lb" style="
-      background: var(--wash);
-      border-color: var(--wash-b);
-      background-image: repeating-linear-gradient(45deg,transparent,transparent 3px,rgba(58,104,152,.25) 3px,rgba(58,104,152,.25) 6px);
+      background:var(--wash);border-color:var(--wash-b);
+      background-image:repeating-linear-gradient(45deg,transparent,transparent 3px,rgba(58,104,152,.25) 3px,rgba(58,104,152,.25) 6px);
     "></div>Washroom
   </div>
 </div>
 
-<!-- Blueprint canvas -->
 <div class="blueprint" id="bp"></div>
-
-<!-- Hover info bar -->
 <div class="tip" id="tip">Hover over any room to see details</div>
+
+<!-- ── INFOGRAPHICS ── -->
+<div class="ig-section" id="infographicsSection">
+  <div style="text-align:center;color:var(--muted);font-size:10px;padding:20px;letter-spacing:.5px;">
+    LOADING ANALYTICS…
+  </div>
+</div>
+
+<!-- ACTION BUTTONS -->
+<div class="action-buttons">
+  <button id="addBtn">+</button>
+  <button id="removeBtn">−</button>
+</div>
+
+<!-- POPUP -->
+<div id="popupForm" class="popup hidden">
+  <div class="popup-box advanced">
+
+    <h2 id="formTitle">Add Student</h2>
+
+    <div class="form-group">
+      <label>Wing</label>
+      <select id="wingSelect">
+        <option value="">Select</option>
+        <option value="A">Wing A</option>
+        <option value="B">Wing B</option>
+        <option value="C">Wing C</option>
+        <option value="D">Wing D</option>
+        <option value="E">Wing E</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Floor</label>
+      <select id="floorSelect"></select>
+    </div>
+
+    <div class="form-group">
+      <label>Rooms</label>
+      <div id="roomOptions" class="room-options"></div>
+    </div>
+
+    <div class="form-group" id="studentGroup" style="display:none;">
+      <label>Select Student</label>
+      <select id="studentDropdown"></select>
+    </div>
+
+    <div id="addInputs">
+      <div class="form-group">
+        <label>Name</label>
+        <input type="text" id="nameInput">
+      </div>
+      <div class="form-group">
+        <label>Roll</label>
+        <input type="text" id="rollInput">
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button id="submitBtn">Submit</button>
+      <button id="closeBtn">Cancel</button>
+    </div>
+
+  </div>
+</div>
 
 <script src="bh2.js"></script>
 </body>

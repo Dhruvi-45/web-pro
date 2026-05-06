@@ -1,418 +1,660 @@
-const WC = {
-  A: '#1a4a8a',
-  B: '#0d5c40',
-  C: '#7a3e08',
-  D: '#8c2a18',
-  E: '#42288a',
-};
+// ===== GLOBAL STATE =====
+let hostelData = null;
+let currentFloor = 1;
+let currentMode = null;
+let selectedRoomCode = null;
 
-/* Occupancy status styles */
+const API = 'http://localhost:3000/api/hostels/BH1';
+
+// ===== FETCH DATA =====
+async function loadHostel() {
+  try {
+    const res = await fetch(API);
+    hostelData = await res.json();
+    console.log('BH1 DB DATA:', hostelData);
+    build(currentFloor);
+    buildInfoGraphics();          // ← NEW
+  } catch (err) {
+    console.error('Fetch error:', err);
+  }
+}
+
+// ===== CONSTANTS =====
+const RW = 52, RH = 46, WS = 52, GAP = 2;
+
 const SS = {
-  vacant: { bg: 'var(--vacant)', b: 'var(--vacant-b)', t: 'var(--vacant-t)', lbl: 'Vacant'             },
-  single: { bg: 'var(--single)', b: 'var(--single-b)', t: 'var(--single-t)', lbl: 'Single Occupied'    },
-  double: { bg: 'var(--double)', b: 'var(--double-b)', t: 'var(--double-t)', lbl: 'Double Occupied'    },
-  full:   { bg: 'var(--full)',   b: 'var(--full-b)',   t: 'var(--full-t)',   lbl: 'Full (Triple)'      },
-  maint:  { bg: 'var(--maint)',  b: 'var(--maint-b)',  t: 'var(--maint-t)', lbl: 'Maintenance/Blocked' },
+  vacant: { bg: 'var(--vacant)', b: 'var(--vacant-b)', t: 'var(--vacant-t)', lbl: 'Vacant'          },
+  single: { bg: 'var(--single)', b: 'var(--single-b)', t: 'var(--single-t)', lbl: 'Partially Occupied' },
+  full:   { bg: 'var(--full)',   b: 'var(--full-b)',   t: 'var(--full-t)',   lbl: 'Fully Occupied'   },
 };
 
-/* Wing metadata shown in hover tooltip */
-const WING_INFO = {
-  A: { name: 'Wing A — Top Horizontal',  type: 'Two-Sitter', position: 'North Block' },
-  B: { name: 'Wing B — Right Vertical',  type: 'Two-Sitter', position: 'East Block'  },
-  C: { name: 'Wing C — Bottom Right',    type: 'Two-Sitter', position: 'South Block' },
-  D: { name: 'Wing D — Bottom Left',     type: 'Two-Sitter', position: 'South Block' },
-  E: { name: 'Wing E — Left Vertical',   type: 'Two-Sitter', position: 'West Block'  },
+// Wing accent colors — A B C D E
+const WC = {
+  A: '#1a4a8a', B: '#0d5c40', C: '#7a3e08', D: '#8c2a18', E: '#42288a'
 };
 
-/* Reference to the hover-info bar */
 const tipEl = document.getElementById('tip');
 
+// ====================================================================
+//  ROOM DATA HELPERS
+// ====================================================================
 
-/* ══════════════════════════════════════════════════════════
-   OCCUPANCY SEED FUNCTION
-   Deterministic pseudo-random: same room always shows same
-   status, but status varies meaningfully across rooms/floors.
-══════════════════════════════════════════════════════════ */
-function occ(floor, wing, num) {
-  const h = (floor * 41 + wing.charCodeAt(0) * 23 + num * 13) % 100;
-  if (h < 28) return 'vacant';
-  if (h < 52) return 'single';
-  if (h < 72) return 'double';
-  if (h < 86) return 'full';
-  return 'maint';
+function getRoomLabel(wing, floor, n) {
+  return wing + '-' + (floor * 100 + n);  // "A-101"
 }
 
-
-/* ══════════════════════════════════════════════════════════
-   DOM FACTORY HELPERS
-══════════════════════════════════════════════════════════ */
-function mkDiv(inlineStyle, className) {
-  const el = document.createElement('div');
-  if (className)   el.className    = className;
-  if (inlineStyle) el.style.cssText = inlineStyle;
-  return el;
+function getRoomData(wing, floor, n) {
+  if (!hostelData || !hostelData.floors) return null;
+  const roomCode = getRoomLabel(wing, floor, n);
+  const floorData = hostelData.floors.find(f => f.floorNumber == floor);
+  if (!floorData) return null;
+  return (floorData.rooms || []).find(r => r.roomNumber === roomCode) || null;
 }
 
-function mkRow(extraStyle) {
-  return mkDiv('display:flex;flex-direction:row;gap:2px;align-items:center;' + (extraStyle || ''));
+function getRoomStatus(wing, floor, n) {
+  const room = getRoomData(wing, floor, n);
+  if (!room) return 'vacant';
+  const students = room.students || [];
+  const count = students.length;
+  const max   = room.maxCapacity || 2;
+  if (count === 0)  return 'vacant';
+  if (count >= max) return 'full';
+  return 'single';
 }
 
-function mkCol(extraStyle) {
-  return mkDiv('display:flex;flex-direction:column;gap:2px;' + (extraStyle || ''));
+// ====================================================================
+//  DOM HELPERS
+// ====================================================================
+
+function el(tag, style, cls) {
+  const d = document.createElement(tag || 'div');
+  if (cls)   d.className     = cls;
+  if (style) d.style.cssText = style;
+  return d;
+}
+function div(style, cls) { return el('div', style, cls); }
+function row(extra) { return div('display:flex;flex-direction:row;gap:' + GAP + 'px;align-items:stretch;' + (extra||'')); }
+function col(extra) { return div('display:flex;flex-direction:column;gap:' + GAP + 'px;' + (extra||'')); }
+function spacer(w, h) {
+  w = w || RW; h = h || RH;
+  return div('width:' + w + 'px;height:' + h + 'px;flex-shrink:0;');
 }
 
+// ====================================================================
+//  WASHROOM CELL
+// ====================================================================
 
-/* ══════════════════════════════════════════════════════════
-   ROOM CELL
-   wing  — letter 'A'–'E'
-   floor — floor number 0–4
-   num   — room number within wing (1-based)
-   w, h  — pixel dimensions
-══════════════════════════════════════════════════════════ */
-function mkRoom(wing, floor, num, w, h) {
-  w = w || 44;
-  h = h || 23;
-
-  const status   = occ(floor, wing, num);
-  const st       = SS[status];
-  const wi       = WING_INFO[wing] || { name: 'Wing ' + wing, type: 'Two-Sitter', position: '' };
-  const roomCode = wing + floor + String(num).padStart(2, '0');  /* e.g. A101 */
-
-  const el = mkDiv(
-    'width:' + w + 'px;height:' + h + 'px;' +
-    'background:' + st.bg + ';border-color:' + st.b + ';color:' + st.t + ';',
-    'room'
-  );
-  el.textContent = roomCode;
-
-  /* Rich hover tooltip */
-  el.onmouseenter = () => {
-    tipEl.innerHTML =
-      '<strong>' + roomCode + '</strong>'                       +
-      ' &nbsp;·&nbsp; ' + st.lbl                               +
-      ' &nbsp;·&nbsp; <strong>' + wi.name + '</strong>'        +
-      ' &nbsp;·&nbsp; Floor&nbsp;<strong>' + floor + '</strong>' +
-      ' &nbsp;·&nbsp; Room&nbsp;<strong>' + String(num).padStart(2,'0') + '</strong>' +
-      ' &nbsp;·&nbsp; Type:&nbsp;<strong>' + wi.type + '</strong>' +
-      ' &nbsp;·&nbsp; <em style="opacity:.7">' + wi.position + '</em>';
-  };
-  el.onmouseleave = () => { tipEl.textContent = 'Hover over any room to see details'; };
-
-  return el;
-}
-
-
-/* ══════════════════════════════════════════════════════════
-   WASHROOM CELL
-══════════════════════════════════════════════════════════ */
-function mkWash(label, sub, w, h) {
-  const el = mkDiv('width:' + w + 'px;height:' + h + 'px;', 'wash');
-  const personIcon =
-    '<svg width="10" height="12" viewBox="0 0 10 12" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+function mkWash(w, h) {
+  w = w || WS; h = h || RH;
+  const d = div('width:' + w + 'px;height:' + h + 'px;', 'wash');
+  d.innerHTML =
+    '<span>WR</span>' +
+    '<svg width="10" height="12" viewBox="0 0 10 12" fill="none">' +
       '<circle cx="5" cy="3" r="2.2" fill="#3a6898"/>' +
       '<rect x="1.5" y="6" width="7" height="5" rx="1.5" fill="#3a6898"/>' +
     '</svg>';
-  el.innerHTML =
-    '<span>' + label + '</span>' +
-    personIcon +
-    '<span style="font-size:5.5px;opacity:.75">(' + sub + ')</span>';
-  return el;
+  return d;
 }
 
+// ====================================================================
+//  STAIRCASE CELL
+// ====================================================================
 
-/* ══════════════════════════════════════════════════════════
-   STAIRCASE CELL
-══════════════════════════════════════════════════════════ */
 function mkStair(w, h) {
-  const el = mkDiv('width:' + w + 'px;height:' + h + 'px;', 'stair');
-  el.textContent = 'STAIRCASE';
-  return el;
+  w = w || WS; h = h || RH;
+  const d = div('width:' + w + 'px;height:' + h + 'px;', 'stair');
+  d.textContent = 'STAIR';
+  return d;
 }
 
+// ====================================================================
+//  ROOM CELL
+// ====================================================================
 
-/* ══════════════════════════════════════════════════════════
-   WING LABEL HELPERS
-══════════════════════════════════════════════════════════ */
-/* Vertical side label (used for Wing E left / Wing B right) */
-function mkSideLbl(letter, transform) {
-  transform = transform || 'rotate(180deg)';
-  const el = mkDiv('background:' + WC[letter] + ';transform:' + transform + ';', 'wing-side-lbl');
-  el.textContent = 'WING ' + letter;
-  return el;
+function mkRoom(wing, floor, n) {
+  const status = getRoomStatus(wing, floor, n);
+  const st     = SS[status];
+  const label  = getRoomLabel(wing, floor, n);
+
+  const d = div(
+    'width:' + RW + 'px;height:' + RH + 'px;' +
+    'background:' + st.bg + ';border-color:' + st.b + ';color:' + st.t + ';',
+    'room'
+  );
+  d.textContent = label;
+  d.dataset.roomCode = label;
+
+  d.onmouseenter = () => {
+    const room = getRoomData(wing, floor, n);
+    const count = room ? (room.students || []).length : 0;
+    const max   = room ? (room.maxCapacity || 2) : 2;
+    const capLabel = max === 1 ? 'Single Room' : max === 2 ? 'Double Room' : 'Triple Room';
+    tipEl.innerHTML =
+      '<strong>Room ' + label + '</strong>' +
+      ' &nbsp;·&nbsp; Status:&nbsp;<strong>' + st.lbl + '</strong>' +
+      ' &nbsp;·&nbsp; Wing&nbsp;<strong>' + wing + '</strong>' +
+      ' &nbsp;·&nbsp; Floor&nbsp;<strong>' + floor + '</strong>' +
+      ' &nbsp;·&nbsp; Occupancy:&nbsp;<strong>' + count + '/' + max + '</strong>' +
+      ' &nbsp;·&nbsp; Capacity:&nbsp;<strong>' + capLabel + '</strong>';
+  };
+  d.onmouseleave = () => { tipEl.textContent = 'Hover over any room to see details'; };
+  return d;
 }
 
-/* Horizontal header label (used for Wing A top) */
-function mkTopLbl(letter) {
-  const el = mkDiv('background:' + WC[letter] + ';', 'wing-hdr-lbl');
-  el.textContent = 'WING ' + letter;
-  return el;
+// ====================================================================
+//  WING ROW  — 18 rooms per wing, layout:
+//  WR | 1-9 | STAIR | 10-18 | WR
+// ====================================================================
+
+function mkWingRow(floor, wing) {
+  const r = row();
+  r.appendChild(mkWash());
+  for (let n = 1; n <= 9; n++)  r.appendChild(mkRoom(wing, floor, n));
+  r.appendChild(mkStair());
+  for (let n = 10; n <= 18; n++) r.appendChild(mkRoom(wing, floor, n));
+  r.appendChild(mkWash());
+  return r;
 }
 
+// ====================================================================
+//  WING BLOCK  — header + row of rooms
+// ====================================================================
 
-/* ══════════════════════════════════════════════════════════
-   MAIN BUILD  — called every time the floor changes
-══════════════════════════════════════════════════════════ */
-function build(f) {
+function mkWingBlock(floor, wing) {
+  const block = div('margin-bottom:' + GAP + 'px;');
+
+  // Header bar
+  const hdr = div(
+    'display:flex;align-items:center;gap:8px;padding:3px 6px;' +
+    'background:#f2f0e8;border:1px solid var(--line);margin-bottom:' + GAP + 'px;'
+  );
+  const lbl = div('background:' + WC[wing] + ';', 'wing-hdr-lbl');
+  lbl.textContent = 'WING ' + wing;
+  const note = div('font-size:9px;color:var(--muted);');
+  const first = getRoomLabel(wing, floor, 1);
+  const last  = getRoomLabel(wing, floor, 18);
+  note.textContent = 'Rooms ' + first + ' – ' + last + ' · 18 rooms · 2 washrooms · 1 staircase';
+  hdr.appendChild(lbl);
+  hdr.appendChild(note);
+  block.appendChild(hdr);
+
+  block.appendChild(mkWingRow(floor, wing));
+  return block;
+}
+
+// ====================================================================
+//  FOOTER
+// ====================================================================
+
+function mkFooter(floor) {
+  const wings = ['A','B','C','D','E'];
+  const footer = div(
+    'display:flex;justify-content:space-between;align-items:flex-start;' +
+    'margin-top:12px;border-top:1px solid var(--court-b);padding-top:8px;gap:8px;flex-wrap:wrap;'
+  );
+
+  const stats = div('', 'stats-box');
+  stats.innerHTML =
+    '<strong>Floor ' + floor + ' — Boys Hostel BH-2</strong><br>' +
+    'Wings: A · B · C · D · E<br>' +
+    '18 rooms per wing · 90 rooms total per floor<br>' +
+    '<em style="font-size:8px;opacity:.7">Room code: [Wing]-[3-digit] e.g. A-101, C-215</em>';
+
+  const note = div('', 'note-box');
+  note.innerHTML =
+    '<strong>NOTE:</strong><br>' +
+    'Each wing: WR · 9 rooms · STAIR · 9 rooms · WR<br>' +
+    'Single rooms (maxCapacity=1) also present<br>' +
+    'Colors: Green=Vacant · Orange=Partial · Red=Full';
+
+  footer.appendChild(stats);
+  footer.appendChild(note);
+  return footer;
+}
+
+// ====================================================================
+//  MAIN BUILD
+// ====================================================================
+
+function build(floor) {
   const bp = document.getElementById('bp');
   bp.innerHTML = '';
 
   document.getElementById('floorSub').textContent =
-    f === 0 ? 'Floor 0 (Ground Floor) Shown as Example' : 'Floor ' + f + ' Shown as Example';
+    'Floor ' + floor + ' — Wings A · B · C · D · E';
 
-  /* ── Cell dimensions ── */
-  const RW  = 43, RH  = 22;   /* standard room (Wings A / C / D) */
-  const MRW = 42, MRH = 21;   /* side-wing room (Wings B / E)    */
-  const WW  = 56, WH  = 32;   /* washroom                        */
-  const SW  = 56, SH  = 18;   /* staircase                       */
+  ['A','B','C','D','E'].forEach(wing => {
+    bp.appendChild(mkWingBlock(floor, wing));
+  });
 
-  /* ══════════════════════════════════
-     WING A  — top horizontal band
-     Layout: [WashA1][A01–A09][WashA2]
-              [Stair ][A18–A10][Stair ]
-  ══════════════════════════════════ */
-  const wingA = mkDiv(
-    'display:flex;flex-direction:column;align-items:center;' +
-    'padding:5px 5px 3px;background:#eef2fa;' +
-    'border:1.5px solid var(--line);border-radius:2px;margin-bottom:2px;'
-  );
-  wingA.appendChild(mkTopLbl('A'));
-
-  /* Row 1 */
-  const aRow1 = mkRow();
-  aRow1.appendChild(mkWash('WASHROOM', 'A1', WW, WH));
-  for (let i = 1; i <= 9; i++) aRow1.appendChild(mkRoom('A', f, i, RW, RH));
-  aRow1.appendChild(mkWash('WASHROOM', 'A2', WW, WH));
-  wingA.appendChild(aRow1);
-
-  /* Row 2 — reversed numbering */
-  const aRow2 = mkRow('margin-top:2px;');
-  aRow2.appendChild(mkStair(WW, SH));
-  for (let i = 18; i >= 10; i--) aRow2.appendChild(mkRoom('A', f, i, RW, RH));
-  aRow2.appendChild(mkStair(WW, SH));
-  wingA.appendChild(aRow2);
-
-  bp.appendChild(wingA);
-
-
-  /* ══════════════════════════════════
-     MIDDLE ROW
-     [E-label][Wing E][Courtyard][Wing B][B-label]
-  ══════════════════════════════════ */
-  const midRow = mkRow('gap:0;align-items:stretch;margin-bottom:2px;');
-
-  /* ── Wing E left label ── */
-  const eLblWrap = mkDiv(
-    'display:flex;align-items:center;' +
-    'background:#f0eef8;border:1.5px solid var(--line);' +
-    'border-right:none;border-radius:2px 0 0 2px;padding:0 3px;'
-  );
-  eLblWrap.appendChild(mkSideLbl('E', 'rotate(180deg)'));
-  midRow.appendChild(eLblWrap);
-
-  /* ── Wing E rooms ── */
-  const wE = mkDiv(
-    'display:flex;flex-direction:column;align-items:center;' +
-    'padding:4px 4px;background:#f0eef8;' +
-    'border:1.5px solid var(--line);border-left:none;border-right:none;'
-  );
-  wE.appendChild(mkWash('WASHROOM', 'E1', 94, WH));
-
-  const eCols = mkRow('gap:2px;margin-top:2px;');
-  /* Left column (outer):  E09 top → E01 bottom */
-  const eColL = mkCol();
-  for (let i = 9; i >= 1; i--) eColL.appendChild(mkRoom('E', f, i, MRW, MRH));
-  /* Right column (inner): E10 top → E18 bottom */
-  const eColR = mkCol();
-  for (let i = 10; i <= 18; i++) eColR.appendChild(mkRoom('E', f, i, MRW, MRH));
-  eCols.appendChild(eColL);
-  eCols.appendChild(eColR);
-  wE.appendChild(eCols);
-
-  const eBotWash = mkDiv('display:flex;flex-direction:column;gap:2px;margin-top:2px;align-items:center;');
-  eBotWash.appendChild(mkWash('WASHROOM', 'E2', 94, WH));
-  eBotWash.appendChild(mkStair(94, SH));
-  wE.appendChild(eBotWash);
-  midRow.appendChild(wE);
-
-  /* ── Central courtyard column ── */
-  const ctCol = mkDiv(
-    'flex:1;display:flex;flex-direction:column;gap:2px;' +
-    'border:1.5px solid var(--line);background:var(--paper);'
-  );
-
-  const ctTop = mkRow('justify-content:space-between;padding:3px 3px 0;');
-  ctTop.appendChild(mkStair(72, SH));
-  ctTop.appendChild(mkStair(72, SH));
-  ctCol.appendChild(ctTop);
-
-  const courtyard = mkDiv('flex:1;min-height:140px;margin:2px 4px;', 'courtyard');
-  courtyard.innerHTML =
-    '<div class="ct-title">CENTRAL COURTYARD</div>' +
-    '<div class="ct-sub">(OPEN TO SKY)</div>';
-  ctCol.appendChild(courtyard);
-
-  const ctBot = mkRow('justify-content:space-between;padding:0 3px 3px;');
-  ctBot.appendChild(mkStair(72, SH));
-  ctBot.appendChild(mkStair(72, SH));
-  ctCol.appendChild(ctBot);
-
-  midRow.appendChild(ctCol);
-
-  /* ── Wing B rooms ── */
-  const wB = mkDiv(
-    'display:flex;flex-direction:column;align-items:center;' +
-    'padding:4px 4px;background:#eaf6f2;' +
-    'border:1.5px solid var(--line);border-left:none;border-right:none;'
-  );
-  wB.appendChild(mkWash('WASHROOM', 'B1', 94, WH));
-
-  const bCols = mkRow('gap:2px;margin-top:2px;');
-  /* Left column (inner):  B01–B09 top → bottom */
-  const bColL = mkCol();
-  for (let i = 1; i <= 9; i++) bColL.appendChild(mkRoom('B', f, i, MRW, MRH));
-  /* Right column (outer): B10–B18 top → bottom */
-  const bColR = mkCol();
-  for (let i = 10; i <= 18; i++) bColR.appendChild(mkRoom('B', f, i, MRW, MRH));
-  bCols.appendChild(bColL);
-  bCols.appendChild(bColR);
-  wB.appendChild(bCols);
-
-  const bBotWash = mkDiv('display:flex;flex-direction:column;gap:2px;margin-top:2px;align-items:center;');
-  bBotWash.appendChild(mkWash('WASHROOM', 'B2', 94, WH));
-  bBotWash.appendChild(mkStair(94, SH));
-  wB.appendChild(bBotWash);
-  midRow.appendChild(wB);
-
-  /* ── Wing B right label ── */
-  const bLblWrap = mkDiv(
-    'display:flex;align-items:center;' +
-    'background:#eaf6f2;border:1.5px solid var(--line);' +
-    'border-left:none;border-radius:0 2px 2px 0;padding:0 3px;'
-  );
-  bLblWrap.appendChild(mkSideLbl('B', 'rotate(0deg)'));
-  midRow.appendChild(bLblWrap);
-
-  bp.appendChild(midRow);
-
-
-  /* ══════════════════════════════════
-     BOTTOM ROW
-     [spacer][Wing D][gap=court width][Wing C][spacer]
-  ══════════════════════════════════ */
-  const botRow = mkRow('gap:0;align-items:stretch;');
-
-  /* Spacer matching E-label width */
-  botRow.appendChild(mkDiv('min-width:28px;'));
-
-  /* ── Wing D ── */
-  const wD = mkDiv(
-    'display:flex;flex-direction:column;align-items:center;' +
-    'padding:4px 4px;background:#f8edea;border:1.5px solid var(--line);'
-  );
-  /* Header: Washroom D2 + Staircase */
-  const dHead = mkRow('gap:3px;margin-bottom:2px;');
-  dHead.appendChild(mkWash('WASHROOM', 'D2', WW, WH));
-  dHead.appendChild(mkStair(SW, SH));
-  wD.appendChild(dHead);
-  /* Row 1: D09 → D01 */
-  const dR1 = mkRow();
-  for (let i = 9; i >= 1; i--) dR1.appendChild(mkRoom('D', f, i, RW, RH));
-  wD.appendChild(dR1);
-  /* Row 2: D18 → D10 */
-  const dR2 = mkRow('margin-top:2px;');
-  for (let i = 18; i >= 10; i--) dR2.appendChild(mkRoom('D', f, i, RW, RH));
-  wD.appendChild(dR2);
-  botRow.appendChild(wD);
-
-  /* Gap beneath the courtyard column */
-  botRow.appendChild(mkDiv('flex:1;'));
-
-  /* ── Wing C ── */
-  const wC = mkDiv(
-    'display:flex;flex-direction:column;align-items:center;' +
-    'padding:4px 4px;background:#fbf5ea;border:1.5px solid var(--line);'
-  );
-  /* Header: Staircase + Washroom C1 */
-  const cHead = mkRow('gap:3px;margin-bottom:2px;');
-  cHead.appendChild(mkStair(SW, SH));
-  cHead.appendChild(mkWash('WASHROOM', 'C1', WW, WH));
-  wC.appendChild(cHead);
-  /* Row 1: C01–C09 */
-  const cR1 = mkRow();
-  for (let i = 1; i <= 9; i++) cR1.appendChild(mkRoom('C', f, i, RW, RH));
-  wC.appendChild(cR1);
-  /* Row 2: C10–C18 */
-  const cR2 = mkRow('margin-top:2px;');
-  for (let i = 10; i <= 18; i++) cR2.appendChild(mkRoom('C', f, i, RW, RH));
-  wC.appendChild(cR2);
-  botRow.appendChild(wC);
-
-  /* Spacer matching B-label width */
-  botRow.appendChild(mkDiv('min-width:28px;'));
-
-  bp.appendChild(botRow);
-
-
-  /* ── Wing D / C bottom text labels ── */
-  const lblRow = mkRow('justify-content:space-around;margin-top:8px;');
-
-  const lD = mkDiv('font-size:12px;font-weight:700;letter-spacing:2px;color:' + WC.D + ';text-align:center;flex:1;');
-  lD.textContent = 'WING D';
-  const lC = mkDiv('font-size:12px;font-weight:700;letter-spacing:2px;color:' + WC.C + ';text-align:center;flex:1;');
-  lC.textContent = 'WING C';
-  lblRow.appendChild(lD);
-  lblRow.appendChild(lC);
-  bp.appendChild(lblRow);
-
-
-  /* ══════════════════════════════════
-     FOOTER — stats + notes
-  ══════════════════════════════════ */
-  const footer = mkRow(
-    'justify-content:space-between;align-items:flex-start;' +
-    'margin-top:12px;border-top:1px solid var(--court-b);' +
-    'padding-top:8px;gap:8px;flex-wrap:wrap;'
-  );
-
-  const stats = mkDiv(null, 'stats-box');
-  stats.innerHTML =
-    '<strong>Total Wings: 5 &nbsp;(A, B, C, D, E)</strong><br>' +
-    'Rooms per Wing: 18 &nbsp;|&nbsp; Floors: 0–4<br>' +
-    'Room Code: [Wing][Floor][Room No.]<br>' +
-    '<em style="font-size:8px;opacity:.7">' +
-      'e.g. A101 = Wing A · Floor 1 · Room 01' +
-    '</em>';
-  footer.appendChild(stats);
-
-  const note = mkDiv(null, 'note-box');
-  note.innerHTML =
-    '<strong>NOTE:</strong><br>' +
-    'All rooms are Two-Sitter capacity<br>' +
-    'Each wing has 2 independent washrooms<br>' +
-    'Staircases are located beside washrooms<br>' +
-    'Room numbers restart from 01 each floor';
-  footer.appendChild(note);
-
-  bp.appendChild(footer);
+  bp.appendChild(mkFooter(floor));
 }
 
+// ====================================================================
+//  FLOOR SELECTOR
+// ====================================================================
 
-/* ══════════════════════════════════════════════════════════
-   FLOOR SELECTOR
-══════════════════════════════════════════════════════════ */
 const selEl = document.getElementById('floorSel');
+const FLOOR_LABELS = ['Floor 0 (GF)', 'Floor 1', 'Floor 2', 'Floor 3', 'Floor 4'];
 
-for (let i = 0; i <= 4; i++) {
+FLOOR_LABELS.forEach((lbl, i) => {
   const btn = document.createElement('button');
-  btn.className = 'fbtn' + (i === 0 ? ' active' : '');
-  btn.textContent = i === 0 ? 'Floor 0 (GF)' : 'Floor ' + i;
+  btn.className = 'fbtn' + (i === 1 ? ' active' : '');
+  btn.textContent = lbl;
   btn.onclick = () => {
     document.querySelectorAll('.fbtn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
+    currentFloor = i;
     build(i);
+    buildInfoGraphics();
   };
   selEl.appendChild(btn);
+});
+
+// ====================================================================
+//  POPUP — SETUP
+// ====================================================================
+
+const popup        = document.getElementById('popupForm');
+const formTitle    = document.getElementById('formTitle');
+const wingSelect   = document.getElementById('wingSelect');
+const floorSelect  = document.getElementById('floorSelect');
+const roomOptions  = document.getElementById('roomOptions');
+const studentGroup = document.getElementById('studentGroup');
+const studentDrop  = document.getElementById('studentDropdown');
+const addInputs    = document.getElementById('addInputs');
+const nameInput    = document.getElementById('nameInput');
+const rollInput    = document.getElementById('rollInput');
+const submitBtn    = document.getElementById('submitBtn');
+const closeBtn     = document.getElementById('closeBtn');
+
+popup.classList.add('hidden');
+
+for (let i = 0; i <= 4; i++) {
+  const opt = document.createElement('option');
+  opt.value = i;
+  opt.textContent = 'Floor ' + i + (i === 0 ? ' (GF)' : '');
+  if (i === currentFloor) opt.selected = true;
+  floorSelect.appendChild(opt);
 }
 
-/* Initial render */
-build(0);
+function getRoomsForWingFloor(wing, floor) {
+  if (!hostelData || !hostelData.floors) return [];
+  const floorData = hostelData.floors.find(f => f.floorNumber == floor);
+  if (!floorData) return [];
+  return (floorData.rooms || []).filter(r => r.roomNumber.startsWith(wing + '-'));
+}
+
+function populateRooms() {
+  roomOptions.innerHTML = '';
+  selectedRoomCode = null;
+  studentGroup.style.display = 'none';
+  studentDrop.innerHTML = '';
+
+  const wing  = wingSelect.value;
+  const floor = parseInt(floorSelect.value);
+  if (!wing) return;
+
+  const rooms = getRoomsForWingFloor(wing, floor);
+
+  if (rooms.length === 0) {
+    roomOptions.innerHTML = '<em style="font-size:11px;color:#999;">No rooms found</em>';
+    return;
+  }
+
+  rooms.forEach(room => {
+    const students = room.students || [];
+    const max = room.maxCapacity || 2;
+    const isFull = students.length >= max;
+
+    if (currentMode === 'remove' && students.length === 0) return;
+    if (currentMode === 'add'    && isFull)                return;
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = room.roomNumber;
+    btn.className = 'room-btn';
+
+    btn.onclick = () => {
+      roomOptions.querySelectorAll('.room-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedRoomCode = room.roomNumber;
+
+      if (currentMode === 'remove') {
+        studentDrop.innerHTML = '';
+        (room.students || []).forEach(s => {
+          const opt = document.createElement('option');
+          opt.value = s.rollNo;
+          opt.textContent = s.name + ' — ' + s.rollNo;
+          studentDrop.appendChild(opt);
+        });
+        studentGroup.style.display = '';
+      }
+    };
+
+    roomOptions.appendChild(btn);
+  });
+}
+
+wingSelect.addEventListener('change', populateRooms);
+floorSelect.addEventListener('change', populateRooms);
+
+// ====================================================================
+//  OPEN / CLOSE POPUP
+// ====================================================================
+
+function openPopup(mode) {
+  currentMode = mode;
+  selectedRoomCode = null;
+  wingSelect.value  = '';
+  floorSelect.value = currentFloor;
+  roomOptions.innerHTML = '';
+  studentGroup.style.display = 'none';
+  studentDrop.innerHTML = '';
+  nameInput.value = '';
+  rollInput.value = '';
+
+  if (mode === 'add') {
+    formTitle.textContent = 'Add Student to Room';
+    addInputs.style.display = '';
+    submitBtn.textContent = 'Add Student';
+  } else {
+    formTitle.textContent = 'Remove Student from Room';
+    addInputs.style.display = 'none';
+    submitBtn.textContent = 'Remove Student';
+  }
+
+  popup.classList.remove('hidden');
+}
+
+function closePopup() {
+  popup.classList.add('hidden');
+  currentMode = null;
+  selectedRoomCode = null;
+}
+
+document.getElementById('addBtn').onclick    = () => openPopup('add');
+document.getElementById('removeBtn').onclick = () => openPopup('remove');
+closeBtn.onclick = closePopup;
+popup.addEventListener('click', (e) => { if (e.target === popup) closePopup(); });
+
+// ====================================================================
+//  SUBMIT
+// ====================================================================
+
+async function addStudent() {
+  const name = nameInput.value.trim();
+  const roll = rollInput.value.trim();
+  if (!selectedRoomCode) { alert('Please select a room.');      return; }
+  if (!name)             { alert('Please enter student name.'); return; }
+  if (!roll)             { alert('Please enter roll number.');  return; }
+
+  try {
+    const res = await fetch(API + '/rooms/' + encodeURIComponent(selectedRoomCode) + '/students', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, rollNo: roll })
+    });
+    if (!res.ok) { const e = await res.json().catch(()=>({})); alert('Error: ' + (e.message||res.statusText)); return; }
+    alert('Student "' + name + '" added to ' + selectedRoomCode + '!');
+    closePopup();
+    await loadHostel();
+  } catch (err) { console.error(err); alert('Failed. Check console.'); }
+}
+
+async function removeStudent() {
+  if (!selectedRoomCode) { alert('Please select a room.'); return; }
+  const rollNo = studentDrop.value;
+  if (!rollNo) { alert('No student selected.'); return; }
+  if (!confirm('Remove "' + studentDrop.options[studentDrop.selectedIndex].text + '" from ' + selectedRoomCode + '?')) return;
+
+  try {
+    const res = await fetch(
+      API + '/rooms/' + encodeURIComponent(selectedRoomCode) + '/students/' + encodeURIComponent(rollNo),
+      { method: 'DELETE' }
+    );
+    if (!res.ok) { const e = await res.json().catch(()=>({})); alert('Error: ' + (e.message||res.statusText)); return; }
+    alert('Student removed from ' + selectedRoomCode + '!');
+    closePopup();
+    await loadHostel();
+  } catch (err) { console.error(err); alert('Failed. Check console.'); }
+}
+
+submitBtn.onclick = () => {
+  if (currentMode === 'add')    addStudent();
+  if (currentMode === 'remove') removeStudent();
+};
+
+
+// ====================================================================
+//  INFOGRAPHICS — STATS + CHARTS
+// ====================================================================
+
+function computeStats(floor) {
+    console.log('computeStats called — hostelData:', hostelData, '| floor:', floor);
+  if (!hostelData || !hostelData.floors) return null;
+
+  const WINGS = ['A','B','C','D','E'];
+  let totalRooms = 0, totalCapacity = 0, totalStudents = 0;
+  let vacant = 0, partial = 0, full = 0;
+
+  const wingStats = {};
+  WINGS.forEach(w => wingStats[w] = { rooms: 0, students: 0, capacity: 0 });
+
+  // ← Only process the selected floor
+  const fd = hostelData.floors.find(f => f.floorNumber == floor);
+  if (!fd) return { totalRooms: 0, totalCapacity: 0, totalStudents: 0,
+                    vacant: 0, partial: 0, full: 0, wingStats, occupancyPct: 0 };
+
+  (fd.rooms || []).forEach(room => {
+    const wing     = room.roomNumber[0];
+    const students = (room.students || []).length;
+    const max      = room.maxCapacity || 2;
+
+    totalRooms++;  totalStudents += students;  totalCapacity += max;
+
+    if (wingStats[wing]) {
+      wingStats[wing].rooms++;
+      wingStats[wing].students += students;
+      wingStats[wing].capacity += max;
+    }
+
+    if      (students === 0)   vacant++;
+    else if (students >= max)  full++;
+    else                       partial++;
+  });
+
+  const occupancyPct = totalCapacity > 0
+    ? Math.round((totalStudents / totalCapacity) * 100) : 0;
+
+  return { totalRooms, totalCapacity, totalStudents,
+           vacant, partial, full, wingStats, occupancyPct };
+}
+
+/* ── Donut Chart ── */
+function mkSVGDonut(vacant, partial, full) {
+  const total = vacant + partial + full;
+  if (total === 0) return '<text x="100" y="105" text-anchor="middle" font-size="11" fill="#888">No Data</text>';
+
+  const cx = 100, cy = 100, R = 72, r = 48;
+  const colors  = ['#d4e9b0', '#f5d08a', '#c8687a'];
+  const borders = ['#5a8a2a', '#c08a10', '#8c2a38'];
+  const labels  = ['Vacant', 'Partial', 'Full'];
+  const values  = [vacant, partial, full];
+  let paths = '', startAngle = -Math.PI / 2;
+
+  values.forEach((val, i) => {
+    if (val === 0) return;
+    const angle    = (val / total) * 2 * Math.PI;
+    const endAngle = startAngle + angle;
+    const large    = angle > Math.PI ? 1 : 0;
+    const f = n => n.toFixed(2);
+
+    const x1  = cx + R * Math.cos(startAngle), y1  = cy + R * Math.sin(startAngle);
+    const x2  = cx + R * Math.cos(endAngle),   y2  = cy + R * Math.sin(endAngle);
+    const ix1 = cx + r * Math.cos(endAngle),   iy1 = cy + r * Math.sin(endAngle);
+    const ix2 = cx + r * Math.cos(startAngle), iy2 = cy + r * Math.sin(startAngle);
+
+    paths += `<path d="M${f(x1)},${f(y1)} A${R},${R} 0 ${large},1 ${f(x2)},${f(y2)} L${f(ix1)},${f(iy1)} A${r},${r} 0 ${large},0 ${f(ix2)},${f(iy2)} Z"
+      fill="${colors[i]}" stroke="${borders[i]}" stroke-width="1.5"/>`;
+    startAngle = endAngle;
+  });
+
+  const center = `
+    <text x="${cx}" y="${cy - 8}"  text-anchor="middle" font-size="22" font-weight="700" fill="#18160e" font-family="Courier New">${total}</text>
+    <text x="${cx}" y="${cy + 10}" text-anchor="middle" font-size="8"  fill="#5a5040"  font-family="Courier New">TOTAL ROOMS</text>`;
+
+  let legend = '';
+  values.forEach((val, i) => {
+    const pct = Math.round((val / total) * 100);
+    const ly  = 212 + i * 22;
+    legend += `<rect x="16" y="${ly - 9}" width="12" height="10" rx="1" fill="${colors[i]}" stroke="${borders[i]}" stroke-width="1"/>`;
+    legend += `<text x="33" y="${ly}" font-size="9" fill="#18160e" font-family="Courier New">${labels[i]}: ${val} (${pct}%)</text>`;
+  });
+
+  return paths + center + legend;
+}
+
+/* ── Floor Bar Chart (one bar per floor, students vs capacity backdrop) ── */
+function mkSVGBarChart(floorStats) {
+  const W = 460, H = 150, padL = 34, padB = 26, padT = 8, padR = 10;
+  const chartW = W - padL - padR, chartH = H - padB - padT;
+  const floors = floorStats.filter(f => f.rooms > 0);
+  if (!floors.length) return '<text x="230" y="75" text-anchor="middle" font-size="11" fill="#888">No Data</text>';
+
+  const maxVal = Math.max(...floors.map(f => f.capacity), 1);
+  const slot   = Math.floor(chartW / floors.length);
+  const barW   = Math.max(slot - 10, 10);
+  let bars = '', xLabels = '', grid = '';
+
+  for (let i = 1; i <= 4; i++) {
+    const y   = padT + chartH - (i / 4) * chartH;
+    const val = Math.round((i / 4) * maxVal);
+    grid += `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W - padR}" y2="${y.toFixed(1)}" stroke="#ddd" stroke-width="0.8" stroke-dasharray="3,3"/>`;
+    grid += `<text x="${padL - 3}" y="${(y + 3).toFixed(1)}" font-size="7" text-anchor="end" fill="#888" font-family="Courier New">${val}</text>`;
+  }
+
+  floors.forEach((f, i) => {
+    const x    = padL + i * slot + (slot - barW) / 2;
+    const yBot = padT + chartH;
+
+    // Capacity backdrop (light grey)
+    const hCap = Math.max((f.capacity / maxVal) * chartH, 2);
+    bars += `<rect x="${x.toFixed(1)}" y="${(yBot - hCap).toFixed(1)}" width="${barW}" height="${hCap.toFixed(1)}" fill="#e8e4d8" rx="1"/>`;
+
+    // Students bar (accent red for BH1)
+    const hStu = f.students > 0 ? Math.max((f.students / maxVal) * chartH, 2) : 0;
+    if (hStu > 0)
+      bars += `<rect x="${x.toFixed(1)}" y="${(yBot - hStu).toFixed(1)}" width="${barW}" height="${hStu.toFixed(1)}" fill="var(--accent, #8c2a38)" rx="1"/>`;
+
+    xLabels += `<text x="${(x + barW / 2).toFixed(1)}" y="${(yBot + 14).toFixed(1)}" font-size="8" text-anchor="middle" fill="#5a5040" font-family="Courier New">F${f.floor}</text>`;
+  });
+
+  const axes   = `<line x1="${padL}" y1="${padT}" x2="${padL}" y2="${padT + chartH}" stroke="#7a7060" stroke-width="1"/>
+                  <line x1="${padL}" y1="${padT + chartH}" x2="${W - padR}" y2="${padT + chartH}" stroke="#7a7060" stroke-width="1"/>`;
+  const legend = `<rect x="${padL}" y="${H - 8}" width="9" height="8" fill="#8c2a38"/>
+                  <text x="${padL + 12}" y="${H - 1}" font-size="7" fill="#18160e" font-family="Courier New">Students</text>
+                  <rect x="${padL + 68}" y="${H - 8}" width="9" height="8" fill="#e8e4d8" stroke="#bcbaa8" stroke-width="1"/>
+                  <text x="${padL + 81}" y="${H - 1}" font-size="7" fill="#18160e" font-family="Courier New">Capacity</text>`;
+
+  return grid + bars + axes + xLabels + legend;
+}
+
+/* ── Wing Comparison — 5 horizontal progress bars ── */
+function mkSVGWingBars(wingStats) {
+  const WINGS = ['A','B','C','D','E'];
+  const COLORS = { A: '#1a4a8a', B: '#0d5c40', C: '#7a3e08', D: '#8c2a18', E: '#42288a' };
+  const W = 460, rowH = 34, padL = 70;
+  const trackW = W - padL - 90;
+  let out = '';
+
+  WINGS.forEach((wing, i) => {
+    const t    = wingStats[wing] || { rooms: 0, students: 0, capacity: 0 };
+    const y    = i * rowH + 2;
+    const pct  = t.capacity > 0 ? t.students / t.capacity : 0;
+    const bW   = Math.round(pct * trackW);
+    const pLbl = Math.round(pct * 100) + '%';
+
+    out += `<text x="0" y="${y + 14}" font-size="9" font-weight="700" fill="${COLORS[wing]}" font-family="Courier New">WING ${wing}</text>`;
+    out += `<rect x="${padL}" y="${y}" width="${trackW}" height="20" rx="2" fill="#e8e4d8" stroke="#bcbaa8" stroke-width="1"/>`;
+    if (bW > 0)
+      out += `<rect x="${padL}" y="${y}" width="${bW}" height="20" rx="2" fill="${COLORS[wing]}"/>`;
+
+    const lx     = bW > 45 ? padL + bW - 5 : padL + bW + 5;
+    const anchor = bW > 45 ? 'end' : 'start';
+    const lFill  = bW > 45 ? '#fff' : '#333';
+    out += `<text x="${lx}" y="${y + 14}" font-size="9" font-weight="700" text-anchor="${anchor}" fill="${lFill}" font-family="Courier New">${pLbl}</text>`;
+    out += `<text x="${padL + trackW + 6}" y="${y + 14}" font-size="8" fill="#5a5040" font-family="Courier New">${t.students}/${t.capacity}</text>`;
+  });
+
+  return out;
+}
+
+/* ── Main builder ── */
+function buildInfoGraphics() {
+  const section = document.getElementById('infographicsSection');
+  if (!section) return;
+    if (!hostelData || !hostelData.floors) return;
+  const stats = computeStats(currentFloor);
+  if (!stats) {
+    section.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:10px;padding:20px;">Loading analytics…</div>';
+    return;
+  }
+
+  const { totalRooms, totalCapacity, totalStudents,
+          vacant, partial, full, wingStats, occupancyPct } = stats;
+
+  const pctColor = occupancyPct > 80 ? '#8c2a38' : occupancyPct > 50 ? '#c08a10' : '#5a8a2a';
+
+  const cards = [
+    { label: 'TOTAL ROOMS',    value: totalRooms,         unit: 'rooms',       color: '#1a4a8a' },
+    { label: 'TOTAL CAPACITY', value: totalCapacity,      unit: 'beds',        color: '#0d5c40' },
+    { label: 'STUDENTS IN',    value: totalStudents,      unit: 'occupied',    color: '#c08a10' },
+    { label: 'OCCUPANCY RATE', value: occupancyPct + '%', unit: 'of capacity', color: pctColor  },
+    { label: 'VACANT ROOMS',   value: vacant,             unit: 'available',   color: '#5a8a2a' },
+  ];
+
+  const cardHTML = cards.map(c => `
+    <div class="stat-card">
+      <div class="stat-val" style="color:${c.color}">${c.value}</div>
+      <div class="stat-label">${c.label}</div>
+      <div class="stat-unit">${c.unit}</div>
+    </div>`).join('');
+
+  const wingBarHeight = 5 * 34 + 10;   // 5 wings × rowH + padding
+
+  section.innerHTML = `
+    <div class="ig-header">
+      <span class="ig-title">OCCUPANCY ANALYTICS</span>
+      <span class="ig-sub">BH-2 · Boys Hostel · Floor ${currentFloor === 0 ? '0 (Ground Floor)' : currentFloor}</span>
+    </div>
+
+    <div class="stat-cards-row">${cardHTML}</div>
+
+    <div class="charts-row">
+
+      
+
+      <div class="chart-box" style="max-width:210px;">
+        <div class="chart-title">Room Status Distribution</div>
+        <svg viewBox="0 0 200 280" width="200" height="280" xmlns="http://www.w3.org/2000/svg">
+          ${mkSVGDonut(vacant, partial, full)}
+        </svg>
+      </div>
+
+      <div class="chart-box" style="flex:2;">
+        <div class="chart-title">Wing-wise Capacity Utilisation (A · B · C · D · E)</div>
+        <svg viewBox="0 0 460 ${wingBarHeight}" width="100%" height="${wingBarHeight}" xmlns="http://www.w3.org/2000/svg">
+          ${mkSVGWingBars(wingStats)}
+        </svg>
+      </div>
+
+    </div>`;
+}
+
+// ====================================================================
+//  INIT
+// ====================================================================
+currentFloor = 1;
+build(1);
+loadHostel();

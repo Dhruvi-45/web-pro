@@ -13,6 +13,7 @@ async function loadHostel() {
     hostelData = await res.json();
     console.log('BH4 DB DATA:', hostelData);
     build(currentFloor);
+    buildInfoGraphics();          // ← NEW
   } catch (err) {
     console.error('Fetch error:', err);
   }
@@ -315,6 +316,7 @@ FLOOR_LABELS.forEach((lbl, i) => {
     btn.classList.add('active');
     currentFloor = i;
     build(i);
+    buildInfoGraphics();
   };
   selEl.appendChild(btn);
 });
@@ -538,6 +540,226 @@ submitBtn.onclick = () => {
   if (currentMode === 'add')    addStudent();
   if (currentMode === 'remove') removeStudent();
 };
+
+
+// ====================================================================
+//  INFOGRAPHICS — STATS + CHARTS
+// ====================================================================
+
+function computeStats(floor) {
+  if (!hostelData || !hostelData.floors) return null;
+
+  let totalRooms = 0, totalCapacity = 0, totalStudents = 0;
+  let vacant = 0, partial = 0, full = 0;
+  const towerStats = {
+    A: { rooms: 0, students: 0, capacity: 0 },
+    B: { rooms: 0, students: 0, capacity: 0 }
+  };
+
+  const fd = hostelData.floors.find(f => f.floorNumber == floor);
+  if (!fd) return { totalRooms: 0, totalCapacity: 0, totalStudents: 0,
+                    vacant: 0, partial: 0, full: 0, towerStats, occupancyPct: 0 };
+
+  (fd.rooms || []).forEach(room => {
+    const tower    = room.roomNumber[0];
+    const students = (room.students || []).length;
+    const max      = room.maxCapacity || 2;
+
+    totalRooms++;  totalStudents += students;  totalCapacity += max;
+
+    if (tower === 'A' || tower === 'B') {
+      towerStats[tower].rooms++;
+      towerStats[tower].students += students;
+      towerStats[tower].capacity += max;
+    }
+
+    if      (students === 0)   vacant++;
+    else if (students >= max)  full++;
+    else                       partial++;
+  });
+
+  const occupancyPct = totalCapacity > 0
+    ? Math.round((totalStudents / totalCapacity) * 100) : 0;
+
+  return { totalRooms, totalCapacity, totalStudents,
+           vacant, partial, full, towerStats, occupancyPct };
+}
+
+/* ── Donut Chart SVG ── */
+function mkSVGDonut(vacant, partial, full) {
+  const total = vacant + partial + full;
+  if (total === 0) return '<text x="100" y="105" text-anchor="middle" font-size="11" fill="#888">No Data</text>';
+
+  const cx = 100, cy = 100, R = 72, r = 48;
+  const colors  = ['#d4e9b0', '#f5d08a', '#c8687a'];
+  const borders = ['#5a8a2a', '#c08a10', '#8c2a38'];
+  const labels  = ['Vacant', 'Partial', 'Full'];
+  const values  = [vacant, partial, full];
+  let paths = '', startAngle = -Math.PI / 2;
+
+  values.forEach((val, i) => {
+    if (val === 0) return;
+    const angle    = (val / total) * 2 * Math.PI;
+    const endAngle = startAngle + angle;
+    const large    = angle > Math.PI ? 1 : 0;
+    const f = n => n.toFixed(2);
+
+    const x1  = cx + R * Math.cos(startAngle), y1  = cy + R * Math.sin(startAngle);
+    const x2  = cx + R * Math.cos(endAngle),   y2  = cy + R * Math.sin(endAngle);
+    const ix1 = cx + r * Math.cos(endAngle),   iy1 = cy + r * Math.sin(endAngle);
+    const ix2 = cx + r * Math.cos(startAngle), iy2 = cy + r * Math.sin(startAngle);
+
+    paths += `<path d="M${f(x1)},${f(y1)} A${R},${R} 0 ${large},1 ${f(x2)},${f(y2)} L${f(ix1)},${f(iy1)} A${r},${r} 0 ${large},0 ${f(ix2)},${f(iy2)} Z"
+      fill="${colors[i]}" stroke="${borders[i]}" stroke-width="1.5"/>`;
+    startAngle = endAngle;
+  });
+
+  const center = `
+    <text x="${cx}" y="${cy - 8}"  text-anchor="middle" font-size="22" font-weight="700" fill="#18160e" font-family="Courier New">${total}</text>
+    <text x="${cx}" y="${cy + 10}" text-anchor="middle" font-size="8"  fill="#5a5040"  font-family="Courier New">TOTAL ROOMS</text>`;
+
+  let legend = '';
+  values.forEach((val, i) => {
+    const pct = Math.round((val / total) * 100);
+    const ly  = 212 + i * 22;
+    legend += `<rect x="16" y="${ly - 9}" width="12" height="10" rx="1" fill="${colors[i]}" stroke="${borders[i]}" stroke-width="1"/>`;
+    legend += `<text x="33" y="${ly}" font-size="9" fill="#18160e" font-family="Courier New">${labels[i]}: ${val} (${pct}%)</text>`;
+  });
+
+  return paths + center + legend;
+}
+
+/* ── Stacked Bar Chart SVG ── */
+function mkSVGBarChart(floorStats) {
+  const W = 460, H = 150, padL = 34, padB = 26, padT = 8, padR = 10;
+  const chartW = W - padL - padR, chartH = H - padB - padT;
+  const floors = floorStats.filter(f => f.rooms > 0);
+  if (!floors.length) return '<text x="230" y="75" text-anchor="middle" font-size="11" fill="#888">No Data</text>';
+
+  const maxVal = Math.max(...floors.map(f => f.capacity), 1);
+  const slot   = Math.floor(chartW / floors.length);
+  const barW   = Math.max(slot - 8, 10);
+  let bars = '', xLabels = '', grid = '';
+
+  for (let i = 1; i <= 4; i++) {
+    const y   = padT + chartH - (i / 4) * chartH;
+    const val = Math.round((i / 4) * maxVal);
+    grid += `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W - padR}" y2="${y.toFixed(1)}" stroke="#ddd" stroke-width="0.8" stroke-dasharray="3,3"/>`;
+    grid += `<text x="${padL - 3}" y="${(y + 3).toFixed(1)}" font-size="7" text-anchor="end" fill="#888" font-family="Courier New">${val}</text>`;
+  }
+
+  floors.forEach((f, i) => {
+    const x    = padL + i * slot + (slot - barW) / 2;
+    const yBot = padT + chartH;
+    const hA   = f.towerA > 0 ? Math.max((f.towerA / maxVal) * chartH, 2) : 0;
+    const hB   = f.towerB > 0 ? Math.max((f.towerB / maxVal) * chartH, 2) : 0;
+
+    if (hA > 0) bars += `<rect x="${x.toFixed(1)}" y="${(yBot - hA - hB).toFixed(1)}" width="${barW}" height="${hA.toFixed(1)}" fill="#1a4a8a" rx="1"/>`;
+    if (hB > 0) bars += `<rect x="${x.toFixed(1)}" y="${(yBot - hB).toFixed(1)}" width="${barW}" height="${hB.toFixed(1)}" fill="#0d5c40" rx="1"/>`;
+
+    xLabels += `<text x="${(x + barW / 2).toFixed(1)}" y="${(yBot + 14).toFixed(1)}" font-size="8" text-anchor="middle" fill="#5a5040" font-family="Courier New">F${f.floor}</text>`;
+  });
+
+  const axes   = `<line x1="${padL}" y1="${padT}" x2="${padL}" y2="${padT + chartH}" stroke="#7a7060" stroke-width="1"/>
+                  <line x1="${padL}" y1="${padT + chartH}" x2="${W - padR}" y2="${padT + chartH}" stroke="#7a7060" stroke-width="1"/>`;
+  const legend = `<rect x="${padL}" y="${H - 8}" width="9" height="8" fill="#1a4a8a"/>
+                  <text x="${padL + 12}" y="${H - 1}" font-size="7" fill="#18160e" font-family="Courier New">Tower A</text>
+                  <rect x="${padL + 62}" y="${H - 8}" width="9" height="8" fill="#0d5c40"/>
+                  <text x="${padL + 75}" y="${H - 1}" font-size="7" fill="#18160e" font-family="Courier New">Tower B</text>`;
+
+  return grid + bars + axes + xLabels + legend;
+}
+
+/* ── Horizontal Progress Bars for Tower Comparison ── */
+function mkSVGTowerBars(towerStats) {
+  const W = 460, rowH = 40, padL = 80;
+  const towers = [
+    { name: 'TOWER A', color: '#1a4a8a', ...towerStats.A },
+    { name: 'TOWER B', color: '#0d5c40', ...towerStats.B }
+  ];
+
+  let out = '';
+  const trackW = W - padL - 80;
+
+  towers.forEach((t, i) => {
+    const y   = i * rowH + 4;
+    const pct = t.capacity > 0 ? t.students / t.capacity : 0;
+    const bW  = Math.round(pct * trackW);
+    const pLabel = Math.round(pct * 100) + '%';
+
+    out += `<text x="0" y="${y + 14}" font-size="9" font-weight="700" fill="${t.color}" font-family="Courier New">${t.name}</text>`;
+    out += `<rect x="${padL}" y="${y}" width="${trackW}" height="22" rx="2" fill="#e8e4d8" stroke="#bcbaa8" stroke-width="1"/>`;
+    if (bW > 0)
+      out += `<rect x="${padL}" y="${y}" width="${bW}" height="22" rx="2" fill="${t.color}"/>`;
+    const lx     = bW > 45 ? padL + bW - 5 : padL + bW + 5;
+    const anchor = bW > 45 ? 'end' : 'start';
+    const lFill  = bW > 45 ? '#fff' : '#333';
+    out += `<text x="${lx}" y="${y + 15}" font-size="9" font-weight="700" text-anchor="${anchor}" fill="${lFill}" font-family="Courier New">${pLabel}</text>`;
+    out += `<text x="${padL + trackW + 6}" y="${y + 14}" font-size="8" fill="#5a5040" font-family="Courier New">${t.students}/${t.capacity} beds</text>`;
+  });
+
+  return out;
+}
+
+/* ── Main builder ── */
+function buildInfoGraphics() {
+  const section = document.getElementById('infographicsSection');
+  if (!section) return;
+  if (!hostelData || !hostelData.floors) return;
+
+  const stats = computeStats(currentFloor);
+  if (!stats) return;
+
+  const { totalRooms, totalCapacity, totalStudents,
+          vacant, partial, full, towerStats, occupancyPct } = stats;
+
+  const pctColor = occupancyPct > 80 ? '#8c2a38' : occupancyPct > 50 ? '#c08a10' : '#5a8a2a';
+  const floorLbl = currentFloor === 0 ? '0 (Ground Floor)' : currentFloor;
+
+  const cards = [
+    { label: 'TOTAL ROOMS',    value: totalRooms,         unit: 'rooms',       color: '#1a4a8a' },
+    { label: 'TOTAL CAPACITY', value: totalCapacity,      unit: 'beds',        color: '#0d5c40' },
+    { label: 'STUDENTS IN',    value: totalStudents,      unit: 'occupied',    color: '#c08a10' },
+    { label: 'OCCUPANCY RATE', value: occupancyPct + '%', unit: 'of capacity', color: pctColor  },
+    { label: 'VACANT ROOMS',   value: vacant,             unit: 'available',   color: '#5a8a2a' },
+  ];
+
+  const towerBarH = 2 * 40 + 10;
+
+  section.innerHTML = `
+    <div class="ig-header">
+      <span class="ig-title">ANALYTICS</span>
+      <span class="ig-sub">BH-4 · Boys Hostel · Floor ${floorLbl} · ${totalRooms} rooms · ${totalStudents}/${totalCapacity} occupied</span>
+    </div>
+
+    <div class="stat-cards-row">
+      ${cards.map(c => `
+        <div class="stat-card">
+          <div class="stat-val" style="color:${c.color}">${c.value}</div>
+          <div class="stat-label">${c.label}</div>
+          <div class="stat-unit">${c.unit}</div>
+        </div>`).join('')}
+    </div>
+
+    <div class="charts-row">
+
+      <div class="chart-box" style="max-width:206px;">
+        <div class="chart-title">Room Status Distribution</div>
+        <svg viewBox="0 0 200 280" width="200" height="280" xmlns="http://www.w3.org/2000/svg">
+          ${mkSVGDonut(vacant, partial, full)}
+        </svg>
+      </div>
+
+      <div class="chart-box" style="flex:2;">
+        <div class="chart-title">Tower A vs Tower B — Floor ${floorLbl} Utilisation</div>
+        <svg viewBox="0 0 460 ${towerBarH}" width="100%" height="${towerBarH}" xmlns="http://www.w3.org/2000/svg">
+          ${mkSVGTowerBars(towerStats)}
+        </svg>
+      </div>
+
+    </div>`;
+}
+
 
 // ====================================================================
 //  INIT
