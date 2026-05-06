@@ -3,9 +3,8 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Boys Hostel — Floor Plan</title>
+<title>Boys Hostel — Floor Plan BH4</title>
 <link rel="stylesheet" href="bh4.css">
-
 </head>
 <body>
 
@@ -20,11 +19,11 @@
 <!-- ── FLOOR SELECTOR ── -->
 <div class="floor-sel" id="floorSel"></div>
 
-<!-- ── LEGEND ── -->
+
 <div class="legend">
   <div class="li"><div class="lb" style="background:var(--vacant);border-color:var(--vacant-b)"></div>Vacant</div>
-  <div class="li"><div class="lb" style="background:var(--single);border-color:var(--single-b)"></div>Single Occupied</div>
-  <div class="li"><div class="lb" style="background:var(--double);border-color:var(--double-b)"></div>Double Occupied</div>
+  <div class="li"><div class="lb" style="background:var(--single);border-color:var(--single-b)"></div>Partially Occupied</div>
+  <div class="li"><div class="lb" style="background:var(--full);border-color:var(--full-b)"></div>Fully Occupied</div>
   <div class="li">
     <div class="lb" style="background:var(--wash);border-color:var(--wash-b);
       background-image:repeating-linear-gradient(45deg,transparent,transparent 3px,rgba(58,104,152,.25) 3px,rgba(58,104,152,.25) 6px);">
@@ -39,6 +38,66 @@
 
 <!-- ── TOOLTIP BAR ── -->
 <div class="tip" id="tip">Hover over any room to see details</div>
+
+<!-- ── ACTION BUTTONS ── -->
+<div class="action-buttons">
+  <button id="addBtn">+</button>
+  <button id="removeBtn">−</button>
+</div>
+
+<!-- ── POPUP ── -->
+<div id="popupForm" class="popup hidden">
+  <div class="popup-box advanced">
+
+    <h2 id="formTitle">Add Student</h2>
+
+    <!-- Tower -->
+    <div class="form-group">
+      <label>Tower</label>
+      <select id="towerSelect">
+        <option value="">Select</option>
+        <option value="A">Tower A</option>
+        <option value="B">Tower B</option>
+      </select>
+    </div>
+
+    <!-- Floor -->
+    <div class="form-group">
+      <label>Floor</label>
+      <select id="floorSelect"></select>
+    </div>
+
+    <!-- Rooms -->
+    <div class="form-group">
+      <label>Rooms</label>
+      <div id="roomOptions" class="room-options"></div>
+    </div>
+
+    <!-- Student dropdown (REMOVE mode only) -->
+    <div class="form-group" id="studentGroup" style="display:none;">
+      <label>Select Student</label>
+      <select id="studentDropdown"></select>
+    </div>
+
+    <!-- Add inputs -->
+    <div id="addInputs">
+      <div class="form-group">
+        <label>Name</label>
+        <input type="text" id="nameInput">
+      </div>
+      <div class="form-group">
+        <label>Roll</label>
+        <input type="text" id="rollInput">
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button id="submitBtn">Submit</button>
+      <button id="closeBtn">Cancel</button>
+    </div>
+
+  </div>
+</div>
 
 <script src="bh4.js"></script>
 </body>
