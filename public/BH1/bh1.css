@@ -22,9 +22,6 @@
   --wingE:    #42288a;
 }
 
-/* ══════════════════════════════════════════════
-   PAGE SHELL
-══════════════════════════════════════════════ */
 body {
   font-family: 'Courier New', Courier, monospace;
   background: var(--bg);
@@ -77,9 +74,7 @@ body {
 }
 .tip strong { color: var(--text); }
 
-/* ══════════════════════════════════════════════
-   CELL STYLES
-══════════════════════════════════════════════ */
+/* ── CELLS ── */
 .room {
   display: flex; align-items: center; justify-content: center;
   font-size: 7px; font-weight: 700; font-family: 'Courier New', monospace;
@@ -107,7 +102,7 @@ body {
     rgba(58,104,152,.15) 3px, rgba(58,104,152,.15) 6px
   );
 }
-.wash svg { display: block; margin: 1px auto 0; opacity: .75; }
+.wash svg { display: block; margin: 1px auto 0; opacity: .7; }
 
 .stair {
   display: flex; align-items: center; justify-content: center;
@@ -121,31 +116,32 @@ body {
   );
 }
 
-/* ══════════════════════════════════════════════
-   LEGEND
-══════════════════════════════════════════════ */
-.legend {
-  display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
-  padding: 7px 12px; background: var(--paper);
-  border: 1.5px solid var(--line); border-radius: 2px;
-  font-size: 9.5px; color: var(--muted);
-  max-width: 1020px; margin: 0 auto 10px; letter-spacing: .3px;
+.courtyard {
+  background: var(--court); border: 2px solid var(--court-b);
+  border-radius: 5px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 3px;
+  background-image:
+    radial-gradient(ellipse at center, rgba(160,200,140,.12) 0%, transparent 65%),
+    repeating-linear-gradient(0deg,  transparent, transparent 9px, rgba(0,0,0,.025) 9px, rgba(0,0,0,.025) 10px),
+    repeating-linear-gradient(90deg, transparent, transparent 9px, rgba(0,0,0,.025) 9px, rgba(0,0,0,.025) 10px);
 }
-.li { display: flex; align-items: center; gap: 4px; }
-.lb { width: 14px; height: 10px; border-radius: 1px; border: 1px solid; flex-shrink: 0; }
+.ct-title { font-size: 12px; font-weight: 700; color: var(--muted); letter-spacing: 1.5px; text-align: center; }
+.ct-sub   { font-size: 8.5px; color: var(--muted); opacity: .65; letter-spacing: .8px; }
 
-/* ══════════════════════════════════════════════
-   WING LABEL
-══════════════════════════════════════════════ */
+.wing-side-lbl {
+  writing-mode: vertical-rl; text-orientation: mixed;
+  font-size: 11px; font-weight: 700; letter-spacing: 2px;
+  color: #fff; padding: 6px 4px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 1px;
+}
 .wing-hdr-lbl {
-  font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
-  padding: 4px 10px; border-radius: 1px;
-  display: inline-block; color: #fff;
+  font-size: 11px; font-weight: 700; letter-spacing: 2px;
+  color: #fff; padding: 2px 14px; border-radius: 1px;
+  text-align: center; display: inline-block;
 }
 
-/* ══════════════════════════════════════════════
-   INFO BOXES
-══════════════════════════════════════════════ */
 .stats-box {
   border: 1.5px solid var(--line); padding: 8px 20px;
   background: var(--court); font-size: 9px; line-height: 1.9;
@@ -157,13 +153,20 @@ body {
   border-radius: 2px; flex: 1;
 }
 
-/* ── flex layout helpers ── */
-.row { display: flex; flex-direction: row; gap: 2px; align-items: stretch; }
+.legend {
+  display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+  padding: 7px 12px; background: var(--paper);
+  border: 1.5px solid var(--line); border-radius: 2px;
+  font-size: 9.5px; color: var(--muted);
+  max-width: 1020px; margin: 0 auto 10px; letter-spacing: .3px;
+}
+.li { display: flex; align-items: center; gap: 4px; }
+.lb { width: 14px; height: 10px; border-radius: 1px; border: 1px solid; flex-shrink: 0; }
+
+.row { display: flex; flex-direction: row; gap: 2px; align-items: center; }
 .col { display: flex; flex-direction: column; gap: 2px; }
 
-/* ══════════════════════════════════════════════
-   ACTION BUTTONS
-══════════════════════════════════════════════ */
+/* ── ACTION BUTTONS ── */
 .action-buttons {
   position: fixed; bottom: 20px; right: 20px;
   display: flex; gap: 10px;
@@ -174,9 +177,7 @@ body {
   background: var(--accent); color: white;
 }
 
-/* ══════════════════════════════════════════════
-   POPUP
-══════════════════════════════════════════════ */
+/* ── POPUP ── */
 .hidden { display: none !important; }
 
 .popup {
@@ -193,17 +194,10 @@ body {
   padding: 20px;
   box-shadow: 6px 6px 0 rgba(0,0,0,0.1);
 }
+.popup-box h2 { font-size: 14px; margin-bottom: 10px; text-align: center; }
 
-.popup-box h2 {
-  font-size: 14px; margin-bottom: 10px; text-align: center;
-}
-
-.form-group {
-  display: flex; flex-direction: column; margin-bottom: 10px;
-}
-.form-group label {
-  font-size: 10px; margin-bottom: 3px; color: var(--muted);
-}
+.form-group { display: flex; flex-direction: column; margin-bottom: 10px; }
+.form-group label { font-size: 10px; margin-bottom: 3px; color: var(--muted); }
 .form-group input,
 .form-group select {
   padding: 6px; border: 1px solid var(--line);
@@ -219,9 +213,7 @@ body {
 }
 .room-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
 
-.btn-row {
-  display: flex; justify-content: space-between; margin-top: 10px;
-}
+.btn-row { display: flex; justify-content: space-between; margin-top: 10px; }
 .btn-row button {
   padding: 6px 10px; border: none;
   background: var(--accent); color: white;
