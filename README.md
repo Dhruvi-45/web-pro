@@ -1,159 +1,89 @@
-# 🏨 HostelOS — Hostel & Room Management System
+🚀 WEB-PRO: Hostel Management System
 
-A full-stack Hostel Management System built with **HTML, CSS, JavaScript, Node.js & MongoDB**.
+WEB-PRO is a modular and scalable full-stack hostel management system designed to streamline hostel operations such as room allocation, occupancy tracking, and multi-hostel management through dedicated dashboards.
 
----
+🌐 Overview
 
-## 🗂️ Project Structure
+WEB-PRO provides a structured solution for managing multiple hostel units within a single system. Each hostel has its own dashboard, enabling clear separation of data and operations.
 
-```
-hostel-management/
-├── server.js              # Express server entry point
-├── seed.js                # Database seeding with demo data
-├── .env                   # Environment variables
-├── package.json
+The system is built with a focus on:
+
+Scalability
+Clean architecture
+Maintainability
+Performance
+📌 Project Status
+
+This project is actively being developed with a focus on improving features, scalability, and overall system design.
+
+🏗️ Project Structure
+WEB-PRO/
 │
-├── models/
-│   ├── Room.js            # Room schema (block, floor, capacity, occupants)
-│   ├── Student.js         # Student schema
-│   ├── Complaint.js       # Complaint schema (with auto-assign to staff)
-│   └── Maintenance.js     # Maintenance schema
+├── models/              # Data models (Hostel, User)
+├── data/                # Hostel datasets
+├── public/              # Frontend dashboards
+│   ├── BH1 → BH5        # Boys Hostel modules
+│   ├── GH               # Guest/Girls Hostel module
+│   ├── css/             # Stylesheets
+│   ├── js/              # Client-side scripts
 │
-├── routes/
-│   ├── rooms.js           # CRUD + assign/vacate student
-│   ├── students.js        # CRUD
-│   ├── complaints.js      # CRUD + status update
-│   ├── maintenance.js     # CRUD + status update
-│   └── stats.js           # Aggregated statistics
-│
-└── public/
-    ├── index.html         # Single-page app
-    ├── css/style.css      # All styles
-    └── js/app.js          # All frontend logic
-```
-
----
-
-## 🚀 Setup Instructions
-
-### 1. Prerequisites
-- Node.js (v16+)
-- MongoDB (running locally or MongoDB Atlas)
-
-### 2. Install Dependencies
-```bash
-cd hostel-management
+├── routes/              # API routes
+├── server.js            # Backend entry point
+├── package.json         # Dependencies
+└── README.md
+🧠 Key Features
+🏢 Multi-Hostel Management
+Separate modules for BH1 → BH5 and GH
+Independent dashboards for each hostel
+Organized and modular data handling
+🛏️ Room Management
+Tracks room capacity and student allocation
+Automatically identifies:
+Empty rooms
+Partially occupied rooms
+Fully occupied rooms
+📊 Dashboard System
+Dedicated interface for each hostel
+Fast rendering using vanilla JavaScript
+Modular and reusable UI components
+⚙️ Backend Architecture
+Built with Node.js and Express
+Structured routing system
+Scalable API design
+Model-based data organization
+🎨 Frontend Design
+Clean and minimal UI
+Modular CSS structure
+Separation of global and hostel-specific styles
+⚡ Getting Started
+1. Install dependencies
 npm install
-```
+2. Run the server
+node server.js
+3. Open in browser
+http://localhost:3000
+🧩 Modules
+Module	Description
+BH1–BH5	Boys Hostel dashboards
+GH	Girls Hostel module
+Models	Data schemas
+Routes	API endpoints
+Public	Frontend rendering layer
+🧪 Future Enhancements
+Authentication system (Admin / Student roles)
+Mobile responsive UI
+Real-time occupancy tracking
+Analytics dashboard (charts and trends)
+Automated room allocation
+Database integration (MongoDB / PostgreSQL)
+🧑‍💻 Author
 
-### 3. Configure Environment
-Edit `.env`:
-```env
-PORT=3000
-MONGO_URI=mongodb://localhost:27017/hostelDB
-```
+Developed as a full-stack project with emphasis on modular architecture, scalability, and clean system design.
 
-### 4. Seed the Database (optional but recommended)
-```bash
-npm run seed
-```
-This will populate:
-- 54 rooms across 3 blocks (A, B, C), 3 floors each
-- 10 sample students
-- 5 complaints with auto-assigned staff contacts
-- 5 maintenance issues
+📌 Summary
 
-### 5. Start the Server
-```bash
-npm start          # Production
-npm run dev        # Development with auto-reload (requires nodemon)
-```
+WEB-PRO demonstrates a structured approach to building a scalable hostel management system with:
 
-### 6. Open in Browser
-Visit: **http://localhost:3000**
-
----
-
-## ✨ Features
-
-### 1. 🗺️ Aerial View (Floor Plan)
-- Visual grid of rooms per block and floor
-- Color coding: 🟢 Vacant · 🔵 Occupied · 🔴 Full · 🟡 Maintenance
-- **Hover over any room** to see:
-  - Room number, type, capacity
-  - Full occupant list with name, roll number, course, year
-- Switch between Block A, B, C
-
-### 2. 📊 Statistics Dashboard
-- Total rooms, students, occupancy rate, vacant beds
-- Animated occupancy progress bar
-- Block-wise breakdown with fill bars
-- Complaints by status & category
-- Maintenance by status
-
-### 3. 📋 Complaints System
-- Students can register complaints: Electrical, Plumbing, Internet, Furniture, Cleaning
-- **Auto-assigns staff** based on category (electrician, plumber, etc.)
-- **📞 Click-to-call button** opens phone app with staff number pre-filled
-- Filter by status and category
-- Warden can update status (Pending → In Progress → Resolved)
-
-### 4. 🔧 Maintenance Tracker
-- Report issues for: Gym, Kitchen, Common Room, Laundry, Garden, etc.
-- Priority levels: Low, Medium, High, Critical (color-coded left border)
-- Schedule repair teams, add dates and cost estimates
-- Status tracking: Open → Scheduled → In Progress → Completed
-
----
-
-## 🔌 API Endpoints
-
-| Method | Route | Description |
-|--------|-------|-------------|
-| GET | /api/rooms | All rooms with occupants |
-| GET | /api/rooms/block/:block | Rooms by block |
-| GET | /api/rooms/:id | Single room |
-| POST | /api/rooms | Create room |
-| PATCH | /api/rooms/:id/assign | Assign student to room |
-| PATCH | /api/rooms/:id/vacate | Remove student from room |
-| GET | /api/students | All students |
-| POST | /api/students | Add student |
-| GET | /api/complaints | All complaints (filter: status, category) |
-| POST | /api/complaints | Submit complaint |
-| PATCH | /api/complaints/:id/status | Update complaint status |
-| GET | /api/maintenance | All maintenance (filter: status, area) |
-| POST | /api/maintenance | Report maintenance issue |
-| PATCH | /api/maintenance/:id/status | Update maintenance status |
-| GET | /api/stats | Aggregated dashboard data |
-
----
-
-## 🛠️ Additional Features You Can Add
-- **Student portal** (student login to submit complaints themselves)
-- **Email/SMS notifications** on complaint assignment (nodemailer / Twilio)
-- **Fee management** module
-- **QR code** for each room
-- **Export to PDF/Excel** (room occupancy reports)
-- **Image uploads** for maintenance evidence (multer)
-- **Authentication** with JWT (warden login)
-- **Real-time updates** with Socket.io
-
----
-
-## 🎨 Design
-- White-based, minimal & professional
-- Font: DM Sans + Syne (Google Fonts)
-- Fully responsive layout
-- Smooth animations and transitions
-- Dark sidebar for navigation contrast
-"# web-pro" 
-
-
-
-
-
-
-git status
-git add .
-git commit -m "Your descriptive commit message"
-git push origin main
+Clear architecture
+Modular design
+Practical real-world applicability
