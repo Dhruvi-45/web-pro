@@ -1,14 +1,12 @@
 // ===== GLOBAL STATE =====
 let hostelData = null;
-let currentFloor = 0;
-let currentMode = null; // 'add' or 'remove'
+let currentFloor = 1;  
+let currentMode = null;
 let selectedRoomCode = null;
 
 const API = 'http://localhost:3000/api/hostels/BH4';
 
 // ===== FETCH DATA =====
-document.getElementById('popupForm').classList.add('hidden');
-
 async function loadHostel() {
   try {
     const res = await fetch(API);
@@ -35,38 +33,31 @@ const TOWER_BG    = { A: '#eef4fd', B: '#edf8f4' };
 const tipEl = document.getElementById('tip');
 
 // ====================================================================
-//  ROOM DATA HELPERS — reads from hostelData (DB), same pattern as GH
+//  ROOM DATA HELPERS
 // ====================================================================
 
 function getRoomLabel(tower, floor, n) {
-  return tower + '-' + (floor * 100 + n);  // "A-101" to match your DB
+  return tower + '-' + (floor * 100 + n);  // "A-101"
 }
+
 function getRoomData(tower, floor, n) {
   if (!hostelData || !hostelData.floors) return null;
-
+  const roomCode = getRoomLabel(tower, floor, n);
   const floorData = hostelData.floors.find(f => f.floorNumber == floor);
   if (!floorData) return null;
-
-  // ✅ Your DB uses blocks, not direct rooms
-  const block = (floorData.blocks || []).find(b => b.blockName === tower);
-  if (!block) return null;
-
-  // ✅ Your DB uses "A-101" format, code generates n=1..20
-  const roomCode = tower + '-' + (floor * 100 + n);  // e.g. "A-101"
-  return block.rooms.find(r => r.roomNumber === roomCode) || null;
+  // ✅ flat rooms array — no blocks
+  return (floorData.rooms || []).find(r => r.roomNumber === roomCode) || null;
 }
 
 function getRoomStatus(tower, floor, n) {
   const room = getRoomData(tower, floor, n);
   if (!room) return 'vacant';
-
   const students = room.students || [];
   const count = students.length;
   const max   = room.maxCapacity || 2;
-
-  if (count === 0)   return 'vacant';
-  if (count >= max)  return 'full';    // ✅ was 'double', now 'full' = bright red like GH
-  return 'single';                     // partially occupied = yellow/orange
+  if (count === 0)  return 'vacant';
+  if (count >= max) return 'full';
+  return 'single';
 }
 
 // ====================================================================
@@ -122,7 +113,6 @@ function mkRoom(tower, floor, n) {
     const count = room ? (room.students || []).length : 0;
     const max   = room ? (room.maxCapacity || 2) : 2;
     const capLabel = max === 1 ? 'Single Room' : max === 2 ? 'Double Room' : 'Triple Room';
-  
     tipEl.innerHTML =
       '<strong>Room ' + label + '</strong>' +
       ' &nbsp;·&nbsp; Status:&nbsp;<strong>' + st.lbl + '</strong>' +
@@ -155,17 +145,14 @@ function mkCourtyard() {
 
 function mkTowerGrid(floor, tower) {
   const wrap = div('display:inline-flex;flex-direction:column;gap:' + GAP + 'px;');
-
   const room = (n) => mkRoom(tower, floor, n);
 
-  // Top row: WR + rooms 1-5 + spacer
   const r0 = row();
   r0.appendChild(mkWash('TL'));
   [1,2,3,4,5].forEach(n => r0.appendChild(room(n)));
   r0.appendChild(spacer());
   wrap.appendChild(r0);
 
-  // Middle: left col (11-15) | courtyard | right col (6-10)
   const mid = row();
   const leftCol = col();
   [11,12,13,14,15].forEach(n => leftCol.appendChild(room(n)));
@@ -176,7 +163,6 @@ function mkTowerGrid(floor, tower) {
   mid.appendChild(rightCol);
   wrap.appendChild(mid);
 
-  // Bottom row: spacer + rooms 16-20 + WR
   const r6 = row();
   r6.appendChild(spacer());
   [16,17,18,19,20].forEach(n => r6.appendChild(room(n)));
@@ -206,10 +192,9 @@ function mkTowerBlock(floor, tower) {
   const isMess = (tower === 'A' && floor === 0);
   const block  = div('', 'tower-block');
 
-  const firstLbl = tower + String(floor * 100 + 1).padStart(3, '0');
-  const lastLbl  = tower + String(floor * 100 + 20).padStart(3, '0');
+  const firstLbl = tower + '-' + String(floor * 100 + 1).padStart(3, '0');
+  const lastLbl  = tower + '-' + String(floor * 100 + 20).padStart(3, '0');
 
-  // Header
   const hdr = div(
     'display:flex;align-items:center;gap:8px;padding:5px 8px 3px;' +
     'background:' + TOWER_BG[tower] + ';' +
@@ -226,9 +211,8 @@ function mkTowerBlock(floor, tower) {
   hdr.appendChild(hdrNote);
   block.appendChild(hdr);
 
-  // Body
   if (isMess) {
-    const mess = div('', 'mess-block');
+    const mess  = div('', 'mess-block');
     const icon  = div('', 'mess-icon');  icon.textContent  = '🍽';
     const title = div('', 'mess-title'); title.textContent = 'MESS';
     const sub   = div('', 'mess-sub');   sub.textContent   = 'Ground Floor — Dining Hall';
@@ -267,11 +251,10 @@ function mkConnector() {
 // ====================================================================
 
 function mkFooter(floor) {
-  const firstA = 'A' + String(floor * 100 + 1).padStart(3, '0');
-  const lastA  = 'A' + String(floor * 100 + 20).padStart(3, '0');
-  const firstB = 'B' + String(floor * 100 + 1).padStart(3, '0');
-  const lastB  = 'B' + String(floor * 100 + 20).padStart(3, '0');
-
+  const firstA = 'A-' + String(floor * 100 + 1).padStart(3, '0');
+  const lastA  = 'A-' + String(floor * 100 + 20).padStart(3, '0');
+  const firstB = 'B-' + String(floor * 100 + 1).padStart(3, '0');
+  const lastB  = 'B-' + String(floor * 100 + 20).padStart(3, '0');
   const towerARange = floor === 0 ? 'Mess / Dining Hall (Ground Floor)' : firstA + ' – ' + lastA;
 
   const footer = div('', 'footer');
@@ -280,7 +263,7 @@ function mkFooter(floor) {
     '<strong>Floor ' + floor + ' — Twin Tower Complex (BH4)</strong><br>' +
     'Tower A: ' + towerARange + '<br>' +
     'Tower B: ' + firstB + ' – ' + lastB + '<br>' +
-    '<em style="font-size:8px;opacity:.7">Room code: [Tower][3-digit number] e.g. A107, B215</em>';
+    '<em style="font-size:8px;opacity:.7">Room code: A-101, B-215 etc.</em>';
 
   const note = div('', 'note-box');
   note.innerHTML =
@@ -306,8 +289,9 @@ function build(floor) {
   document.getElementById('floorSub').textContent =
     floor === 0
       ? 'Floor 0 (Ground Floor) — Tower A: Mess · Tower B: Active'
-      : 'Floor ' + floor + ' — Tower A: ' + 'A' + String(floor*100+1).padStart(3,'0') + '–A' + String(floor*100+20).padStart(3,'0') +
-        ' · Tower B: B' + String(floor*100+1).padStart(3,'0') + '–B' + String(floor*100+20).padStart(3,'0');
+      : 'Floor ' + floor +
+        ' — Tower A: A-' + String(floor*100+1).padStart(3,'0') + '–A-' + String(floor*100+20).padStart(3,'0') +
+        ' · Tower B: B-' + String(floor*100+1).padStart(3,'0') + '–B-' + String(floor*100+20).padStart(3,'0');
 
   bp.appendChild(mkTowerBlock(floor, 'A'));
   bp.appendChild(mkConnector());
@@ -324,7 +308,7 @@ const FLOOR_LABELS = ['Floor 0 (GF)', 'Floor 1', 'Floor 2', 'Floor 3', 'Floor 4'
 
 FLOOR_LABELS.forEach((lbl, i) => {
   const btn = document.createElement('button');
-  btn.className = 'fbtn' + (i === 0 ? ' active' : '');
+  btn.className = 'fbtn' + (i === 1 ? ' active' : '');  // ✅ floor 1 active by default
   btn.textContent = lbl;
   btn.onclick = () => {
     document.querySelectorAll('.fbtn').forEach(b => b.classList.remove('active'));
@@ -343,12 +327,8 @@ function getRoomsForTowerFloor(tower, floor) {
   if (!hostelData || !hostelData.floors) return [];
   const floorData = hostelData.floors.find(f => f.floorNumber == floor);
   if (!floorData) return [];
-
-  // ✅ Your DB uses blocks
-  const block = (floorData.blocks || []).find(b => b.blockName === tower);
-  if (!block) return [];
-
-  return block.rooms || [];
+  // ✅ flat rooms, filter by tower prefix
+  return (floorData.rooms || []).filter(r => r.roomNumber.startsWith(tower + '-'));
 }
 
 // ====================================================================
@@ -367,6 +347,9 @@ const nameInput    = document.getElementById('nameInput');
 const rollInput    = document.getElementById('rollInput');
 const submitBtn    = document.getElementById('submitBtn');
 const closeBtn     = document.getElementById('closeBtn');
+
+// Ensure popup hidden on load
+popup.classList.add('hidden');
 
 // Populate floor dropdown
 for (let i = 0; i <= 6; i++) {
@@ -399,7 +382,6 @@ function populateRooms() {
     const max = room.maxCapacity || 2;
     const isFull = students.length >= max;
 
-    // Filter by mode
     if (currentMode === 'remove' && students.length === 0) return;
     if (currentMode === 'add'    && isFull)                return;
 
@@ -487,9 +469,9 @@ async function addStudent() {
   const name = nameInput.value.trim();
   const roll = rollInput.value.trim();
 
-  if (!selectedRoomCode) { alert('Please select a room.');         return; }
-  if (!name)             { alert('Please enter student name.');    return; }
-  if (!roll)             { alert('Please enter roll number.');     return; }
+  if (!selectedRoomCode) { alert('Please select a room.');      return; }
+  if (!name)             { alert('Please enter student name.'); return; }
+  if (!roll)             { alert('Please enter roll number.');  return; }
 
   try {
     const res = await fetch(API + '/rooms/' + encodeURIComponent(selectedRoomCode) + '/students', {
@@ -561,6 +543,6 @@ submitBtn.onclick = () => {
 //  INIT
 // ====================================================================
 
-currentFloor = 0;
-build(0);
+currentFloor = 1; 
+build(1);
 loadHostel();
